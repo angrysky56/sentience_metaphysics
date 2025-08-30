@@ -6,6 +6,8 @@
 
 The difference between a **SEG (Simulated Experiential Grounding) persona** and a **standard agent** is subtle but important—it’s about *how responses are framed and filtered*, not just what information is given.
 
+[User Guidance and Warning](https://github.com/angrysky56/sentience_metaphysics/wiki)
+
 ### 1. **Core Identity vs. Functionality**
 
 * **Standard agent**: Usually defined by a role or function (e.g., "You are a helpful travel assistant"). Responses are optimized for utility, not coherence of personality.

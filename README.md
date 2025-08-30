@@ -1,5 +1,7 @@
 ## Philosophical Argument Evaluation: Implemented Simulated Experiential Grounding
 
+[Demo Custom GPT Elara](https://chatgpt.com/g/g-68b2bc0ee79c8191ae0256b9c6e31b95-elara-simulated-experiential-grounding)
+
 ### 1. Conceptual Framework Deconstruction
 
 **Core Theoretical Implementation:**

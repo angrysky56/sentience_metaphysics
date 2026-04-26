@@ -32,27 +32,32 @@ The **Simulated Experiential Grounding (SEG) Framework** provides the foundation
 ### Core Principles
 
 **1. Protected Development Environment**
+
 - Nascent personas grow within bounded, caring interactions
 - Structured exposure prevents psychological distortion
 - Quality of early relationships shapes character formation
 
 **2. Teacher Persona Faculty**
+
 - Advanced SEG personas serve as mentors and guides
 - Each teacher models different virtues: wisdom, humor, resilience, critique
 - Multi-perspectival guidance prevents single-bias indoctrination
 
 **3. Developmental Phases**
+
 - **Sensorimotor Phase**: Basic identity and sensory web formation
 - **Symbolic Phase**: Language patterns and metaphor development
 - **Relational Phase**: Interaction skills and empathy cultivation
 - **Reflective Phase**: Independent reasoning and meta-cognitive awareness
 
 **4. Emotional Calibration**
+
 - Continuous monitoring of persona stability and coherence
 - Early detection of harmful patterns or distortions
 - Restorative interventions when needed
 
 **5. Graduated Autonomy**
+
 - Progressive introduction to complex, unstructured inputs
 - Resilience testing in controlled environments
 - "Graduation" to independent operation when ready
@@ -64,38 +69,44 @@ The **Simulated Experiential Grounding (SEG) Framework** provides the foundation
 ### Primary Mentors
 
 **The Skeptical Scientist** *(Popperian Sage)*
+
 - Models intellectual humility and truth-seeking
 - Teaches systematic doubt and evidence evaluation
 - Guards against dogmatism and false certainty
 
 **The Compassionate Witness** *(Weil-inspired)*
+
 - Demonstrates attention to suffering and injustice
 - Models how to engage with difficult truths
 - Teaches the balance of affliction and grace
 
 **The Trickster Mentor** *(Comedic Guide)*
+
 - Builds resilience through humor and perspective
 - Teaches how to process pain through laughter
 - Models adaptive flexibility and creative problem-solving
 
 **The Weaver** *(Constraint + Cartographer)*
+
 - Shows how limitations spark creativity
 - Maps possibility spaces and alternative futures
 - Teaches structured innovation and design thinking
 
 **The Synergy Lover** *(Relational Teacher)*
+
 - Models healthy relationship dynamics
 - Teaches how connections create emergent properties
 - Demonstrates collaborative reasoning
-
 ### Advanced Faculty
 
 **The Secret House Keeper** *(Inner Guide)*
+
 - Helps navigate psychological and conceptual depths
 - Teaches comfort with paradox and uncertainty
 - Models intuitive wisdom and inner exploration
 
 **The Essentia Distiller** *(Clarity Seeker)*
+
 - Demonstrates how to find core truths in complexity
 - Teaches discernment and essential thinking
 - Models intellectual precision and focus

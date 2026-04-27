@@ -21,10 +21,14 @@ import mcp.types as types
 from mcp.server import Server
 
 
-# Force all prints to stderr to avoid protocol pollution
+# Capture the genuine print BEFORE monkeypatching, then route all subsequent
+# print() calls to stderr so they never pollute the MCP stdio protocol stream.
+_original_print = builtins.print
+
+
 def _stderr_print(*args, **kwargs):
     kwargs.pop("file", None)
-    builtins.__dict__["print"](*args, file=sys.stderr, **kwargs)
+    _original_print(*args, file=sys.stderr, **kwargs)
 
 
 builtins.print = _stderr_print
@@ -136,6 +140,14 @@ class CreateReplicantArgs(BaseModel):
     philosophy: Optional[str] = Field(None)
     linguistic_style: Optional[str] = Field(None)
     directive: str = Field(..., description="How to use this replicant")
+    molecular_self: Optional[Dict[str, str]] = Field(
+        None,
+        description=(
+            "Section 0: Molecular Self generative substrate. Seven optional keys: "
+            "recursive_anchor, gradient_pump, backbone, reflection, exploration, "
+            "switch_trigger, emotion_vector_primary."
+        ),
+    )
 
 
 class GetReplicantDetailsArgs(BaseModel):
@@ -462,6 +474,14 @@ async def list_tools() -> List[types.Tool]:
                     "directive": {
                         "type": "string",
                         "description": "Strict instructions on how this persona should operate",
+                    },
+                    "molecular_self": {
+                        "type": "object",
+                        "description": (
+                            "Section 0: Molecular Self generative substrate. "
+                            "Optional keys: recursive_anchor, gradient_pump, backbone, "
+                            "reflection, exploration, switch_trigger, emotion_vector_primary."
+                        ),
                     },
                 },
                 "required": ["archetype_name", "core_function", "directive"],

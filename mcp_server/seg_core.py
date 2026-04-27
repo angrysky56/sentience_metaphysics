@@ -349,6 +349,7 @@ Depth: {depth}
         emotional_core: Optional[str] = None,
         philosophy: Optional[str] = None,
         linguistic_style: Optional[str] = None,
+        molecular_self: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """Create a new custom replicant archetype."""
 
@@ -389,8 +390,9 @@ Depth: {depth}
             "philosophy": philosophy,
             "linguistic_style": linguistic_style,
             "directive": directive,
+            "molecular_self": molecular_self,
             "creation_method": "custom_generated",
-            "version": "1.1",
+            "version": "1.2",
         }
 
         # Persist the custom replicant

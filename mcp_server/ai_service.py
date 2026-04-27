@@ -29,7 +29,7 @@ class AIService:
         model: Optional[str] = None,
         api_key: Optional[str] = None,
     ):
-        self.provider = (provider or os.getenv("AI_PROVIDER") or "gemini").lower()
+        self.provider = (provider or os.getenv("AI_PROVIDER") or "ollama").lower()
         self.api_key = api_key or os.getenv(f"{self.provider.upper()}_API_KEY")
 
         # Default models
@@ -98,12 +98,58 @@ class AIService:
             response.raise_for_status()
             data = response.json()
 
-            content = (
-                data.get("candidates", [{}])[0]
-                .get("content", {})
-                .get("parts", [{}])[0]
-                .get("text", "")
-            )
+            # Check for prompt-level safety block (no candidates returned at all).
+            prompt_feedback = data.get("promptFeedback", {})
+            block_reason = prompt_feedback.get("blockReason")
+            if block_reason:
+                safety_ratings = prompt_feedback.get("safetyRatings", [])
+                return AIResponse(
+                    content="",
+                    error=(
+                        f"Gemini blocked the prompt (blockReason: {block_reason}). "
+                        f"Safety ratings: {safety_ratings}"
+                    ),
+                )
+
+            candidates = data.get("candidates", [])
+            if not candidates:
+                return AIResponse(
+                    content="",
+                    error=f"Gemini returned no candidates. Response: {data}",
+                )
+
+            # Check for response-level termination that produced no usable text.
+            candidate = candidates[0]
+            finish_reason = candidate.get("finishReason")
+            if finish_reason and finish_reason not in ("STOP", "MAX_TOKENS"):
+                return AIResponse(
+                    content="",
+                    error=(
+                        f"Gemini stopped generation early (finishReason: {finish_reason}). "
+                        f"Safety ratings: {candidate.get('safetyRatings', [])}"
+                    ),
+                )
+
+            parts = candidate.get("content", {}).get("parts", [])
+            if not parts:
+                return AIResponse(
+                    content="",
+                    error=(
+                        f"Gemini candidate had no content parts. "
+                        f"finishReason: {finish_reason}"
+                    ),
+                )
+
+            content = parts[0].get("text", "")
+            if not content:
+                return AIResponse(
+                    content="",
+                    error=(
+                        f"Gemini returned an empty text part. "
+                        f"finishReason: {finish_reason}"
+                    ),
+                )
+
             return AIResponse(content=content)
 
     async def _call_openai(self, messages: List[Dict[str, str]]) -> AIResponse:
@@ -126,23 +172,76 @@ class AIService:
             response.raise_for_status()
             data = response.json()
 
-            content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+            choices = data.get("choices", [])
+            if not choices:
+                return AIResponse(
+                    content="",
+                    error=f"OpenAI returned no choices. Response: {data}",
+                )
+
+            choice = choices[0]
+            finish_reason = choice.get("finish_reason")
+            content = choice.get("message", {}).get("content", "")
+            if not content:
+                return AIResponse(
+                    content="",
+                    error=(
+                        f"OpenAI returned empty content. "
+                        f"finish_reason: {finish_reason}"
+                    ),
+                )
             return AIResponse(content=content)
 
     async def _call_ollama(self, messages: List[Dict[str, str]]) -> AIResponse:
-        prompt = self._messages_to_prompt(messages)
-        url = f"{self.base_url}/api/generate"
+        """Call Ollama via /api/chat for proper system-role + chat-template handling.
+
+        We deliberately use /api/chat rather than /api/generate. /api/generate
+        would force us to flatten the message list into a single concatenated
+        prompt, which loses the system/user role distinction and bypasses the
+        instruction-tuned chat template baked into the model (Gemma, Llama-3
+        Instruct, Qwen-Instruct, etc.). For SEG personas — where the system
+        message carries the molecular_self / Base SEG instruction — that
+        template is the load-bearing mechanism for system-prompt adherence.
+        Skipping it is a major reason a strong instruction "drifts after a few
+        turns": the model never gave the instruction full system-role weight
+        in the first place.
+        """
+        url = f"{self.base_url}/api/chat"
 
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 url,
-                json={"model": self.model, "prompt": prompt, "stream": False},
-                timeout=60.0,
+                json={
+                    "model": self.model,
+                    "messages": messages,
+                    "stream": False,
+                    # Keep options minimal so model defaults / Modelfile govern.
+                    # Callers can extend this dict later (temperature, num_ctx,
+                    # num_predict, etc.) without changing the surface.
+                },
+                timeout=180.0,  # Local generation on commodity GPUs can be slow.
             )
             response.raise_for_status()
             data = response.json()
 
-            content = data.get("response", "")
+            # /api/chat shape: {"message": {"role":"assistant","content":"..."}, "done": true, ...}
+            message = data.get("message")
+            if not isinstance(message, dict):
+                return AIResponse(
+                    content="",
+                    error=f"Ollama /api/chat returned no message object. Response: {data}",
+                )
+
+            content = message.get("content", "")
+            if not content:
+                done_reason = data.get("done_reason") or data.get("done")
+                return AIResponse(
+                    content="",
+                    error=(
+                        f"Ollama /api/chat returned empty content. "
+                        f"done_reason: {done_reason}. Full response keys: {list(data.keys())}"
+                    ),
+                )
             return AIResponse(content=content)
 
     async def _call_openai_compatible(self, messages: List[Dict[str, str]]) -> AIResponse:
@@ -161,7 +260,24 @@ class AIService:
             response.raise_for_status()
             data = response.json()
 
-            content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+            choices = data.get("choices", [])
+            if not choices:
+                return AIResponse(
+                    content="",
+                    error=f"OpenAI-compatible returned no choices. Response: {data}",
+                )
+
+            choice = choices[0]
+            finish_reason = choice.get("finish_reason")
+            content = choice.get("message", {}).get("content", "")
+            if not content:
+                return AIResponse(
+                    content="",
+                    error=(
+                        f"OpenAI-compatible returned empty content. "
+                        f"finish_reason: {finish_reason}"
+                    ),
+                )
             return AIResponse(content=content)
 
     def _messages_to_prompt(self, messages: List[Dict[str, str]]) -> str:

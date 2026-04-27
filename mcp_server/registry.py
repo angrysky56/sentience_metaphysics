@@ -36,3 +36,17 @@ class ReplicantRegistry:
         if name:
             self.custom_replicants[name] = replicant
             self.persistence.save_custom_replicant(replicant)
+
+    def delete_custom_replicant(self, name: str) -> bool:
+        """Remove a custom replicant from memory and disk.
+
+        Static replicants from REPLICANT_DEFINITIONS are immutable and
+        cannot be deleted through this method. Returns True if a custom
+        replicant was actually removed, False otherwise.
+        """
+        if name in self.static_replicants:
+            return False
+        if name not in self.custom_replicants:
+            return False
+        del self.custom_replicants[name]
+        return self.persistence.delete_custom_replicant(name)

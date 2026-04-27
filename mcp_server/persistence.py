@@ -33,6 +33,15 @@ class SEGPersistenceManager:
         """Load all custom replicants from disk."""
         return self._load_file(self.custom_replicants_file)
 
+    def delete_custom_replicant(self, name: str) -> bool:
+        """Delete a custom replicant from disk. Returns True if removed."""
+        data = self._load_file(self.custom_replicants_file)
+        if name not in data:
+            return False
+        del data[name]
+        self._save_file(self.custom_replicants_file, data)
+        return True
+
     def save_generated_persona(self, persona: Dict[str, Any]):
         """Save a generated persona to disk."""
         data = self._load_file(self.generated_personas_file)

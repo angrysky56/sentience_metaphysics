@@ -156,6 +156,14 @@ class GetReplicantDetailsArgs(BaseModel):
     replicant_name: str = Field(..., description="Name of the replicant to examine")
 
 
+class DeleteReplicantArgs(BaseModel):
+    """Arguments for the delete_custom_replicant tool."""
+
+    replicant_name: str = Field(
+        ..., description="Name of the custom replicant to permanently remove"
+    )
+
+
 class StartSegCouncilArgs(BaseModel):
     """Arguments for the start_seg_council tool."""
 
@@ -502,6 +510,24 @@ async def list_tools() -> List[types.Tool]:
             },
         ),
         types.Tool(
+            name="delete_custom_replicant",
+            description=(
+                "Permanently remove a custom replicant from the registry. "
+                "The 10 static archetypes (Bayesian Sage, Comedic Trickster, etc.) "
+                "are immutable and cannot be deleted."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "replicant_name": {
+                        "type": "string",
+                        "description": "Name of the custom replicant to remove",
+                    }
+                },
+                "required": ["replicant_name"],
+            },
+        ),
+        types.Tool(
             name="start_seg_council",
             description="Initialize a high-fidelity CrewAI council session (asynchronous).",
             inputSchema={
@@ -584,6 +610,39 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[types.TextCont
                     text=f"Replicant '{replicant_name}' not found. Available replicants: {', '.join(valid_names)}",
                 )
             ]
+
+    elif name == "delete_custom_replicant":
+        args = DeleteReplicantArgs(**arguments)
+        replicant_name = args.replicant_name
+        # Distinguish three cases: static (immutable), unknown, custom (removable).
+        if replicant_name in persona_generator.registry.static_replicants:
+            return [
+                types.TextContent(
+                    type="text",
+                    text=(
+                        f"Cannot delete '{replicant_name}': it is a static archetype "
+                        f"and is immutable. Only custom replicants can be removed."
+                    ),
+                )
+            ]
+        removed = persona_generator.registry.delete_custom_replicant(replicant_name)
+        if removed:
+            return [
+                types.TextContent(
+                    type="text",
+                    text=f"Custom replicant '{replicant_name}' permanently removed.",
+                )
+            ]
+        return [
+            types.TextContent(
+                type="text",
+                text=(
+                    f"Replicant '{replicant_name}' not found in custom registry. "
+                    f"Available custom replicants: "
+                    f"{', '.join(persona_generator.registry.custom_replicants.keys()) or '(none)'}"
+                ),
+            )
+        ]
 
     elif name == "start_seg_council":
         args = StartSegCouncilArgs(**arguments)

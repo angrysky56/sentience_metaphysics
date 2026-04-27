@@ -13,26 +13,145 @@ import asyncio
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import mcp.types as types
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
+from pydantic import BaseModel, Field, field_validator
 
-from seg_core import SEGPersonaGenerator, SEGCouncilOrchestrator
-from replicants import REPLICANT_DEFINITIONS
-from templates import SEG_PROMPTS, SEG_TEMPLATES
+from .ai_service import AIService
+from .council import CouncilManager
+from .seg_core import SEGCouncilOrchestrator, SEGPersonaGenerator
+from .templates import SEG_TEMPLATES
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+# Pydantic Models for Tool Validation
+class GeneratePersonaArgs(BaseModel):
+    """Arguments for the generate_persona tool."""
+
+    name: str = Field(..., description="Persona name")
+    age: Optional[int] = Field(None, description="Age in years")
+    profession: str = Field(..., description="Primary profession or role")
+    location: Optional[str] = Field(None, description="Geographic/cultural context")
+    defining_experience: str = Field(
+        ..., description="Core emotional/formative experience"
+    )
+    domain_expertise: Optional[str] = Field(
+        None, description="Area of specialized knowledge"
+    )
+    philosophical_stance: Optional[str] = Field(
+        None, description="Core worldview or belief system"
+    )
+    style_preferences: Optional[str] = Field(
+        None, description="Communication style and linguistic preferences"
+    )
+    molecular_self: Optional[Dict[str, str]] = Field(
+        None, description="Section 0: Molecular Self generative substrate"
+    )
+
+
+class RunCouncilSessionArgs(BaseModel):
+    """Arguments for the run_council_session tool."""
+
+    premise: str = Field(..., description="Core question or scenario to explore")
+    replicants: List[str] = Field(
+        ..., description="List of replicants to include (2-10 personas)"
+    )
+    mode: str = Field("dialogic", description="Output format for the council session")
+    constraints: Optional[str] = Field(
+        None, description="Optional constraints or rules"
+    )
+    cycles: int = Field(2, description="Number of reasoning cycles (1-5)")
+
+    @field_validator("mode")
+    @classmethod
+    def validate_mode(cls, v):
+        """Validate the council session mode."""
+        allowed = ["dialogic", "braided_report", "strategic", "aesthetic"]
+        if v not in allowed:
+            raise ValueError(f"Mode must be one of {allowed}")
+        return v
+
+    @field_validator("replicants")
+    @classmethod
+    def validate_replicants(cls, v):
+        """Validate the number of replicants."""
+        if len(v) < 2 or len(v) > 10:
+            raise ValueError("Replicant count must be between 2 and 10")
+        return v
+
+
+class AnalyzeLensArgs(BaseModel):
+    """Arguments for the analyze_through_seg_lens tool."""
+
+    text: str = Field(..., description="Text or concept to analyze")
+    persona_or_replicant: str = Field(..., description="Persona name or replicant type")
+    analysis_focus: Optional[str] = Field(
+        None, description="Specific aspect to focus on"
+    )
+    depth: str = Field("moderate", description="Depth of experiential filtering")
+
+    @field_validator("depth")
+    @classmethod
+    def validate_depth(cls, v):
+        """Validate the analysis depth."""
+        allowed = ["surface", "moderate", "deep"]
+        if v not in allowed:
+            raise ValueError(f"Depth must be one of {allowed}")
+        return v
+
+
+class CreateReplicantArgs(BaseModel):
+    """Arguments for the create_custom_replicant tool."""
+
+    archetype_name: str = Field(..., description="Name of the new archetype")
+    core_function: str = Field(..., description="Primary cognitive/creative function")
+    anchor_identity: Optional[str] = Field(
+        None, description="Base identity and context"
+    )
+    sensory_web: Optional[Dict[str, str]] = Field(None)
+    emotional_core: Optional[str] = Field(None)
+    philosophy: Optional[str] = Field(None)
+    linguistic_style: Optional[str] = Field(None)
+    directive: str = Field(..., description="How to use this replicant")
+
+
+class GetReplicantDetailsArgs(BaseModel):
+    """Arguments for the get_replicant_details tool."""
+
+    replicant_name: str = Field(..., description="Name of the replicant to examine")
+
+
+class StartSegCouncilArgs(BaseModel):
+    """Arguments for the start_seg_council tool."""
+
+    premise: str = Field(..., description="Core question or scenario to explore")
+    agent_ids: List[str] = Field(..., description="List of replicants to include")
+
+
+class GetSegCouncilStatusArgs(BaseModel):
+    """Arguments for the get_seg_council_status tool."""
+
+    session_id: str = Field(..., description="ID of the council session")
+
+
 # Initialize the SEG MCP Server
 app = Server("seg-mcp-server", version="1.1.0")
 
+# Initialize AI Service
+ai_service = AIService()
+
 # Initialize core SEG components
-persona_generator = SEGPersonaGenerator()
-council_orchestrator = SEGCouncilOrchestrator()
+persona_generator = SEGPersonaGenerator(ai_service=ai_service)
+council_orchestrator = SEGCouncilOrchestrator(
+    ai_service=ai_service, registry=persona_generator.registry
+)
+council_manager = CouncilManager()
 
 # Server root directory for resources
 SERVER_ROOT = Path(__file__).parent
@@ -45,50 +164,54 @@ async def list_resources() -> List[types.Resource]:
         types.Resource(
             uri="seg://replicants/all",
             name="All SEG Replicants",
-            description="Complete collection of 10 SEG replicant archetypes",
-            mimeType="application/json"
+            description="Complete collection of all SEG replicant archetypes",
+            mimeType="application/json",
         ),
         types.Resource(
             uri="seg://replicants/detailed",
-            name="Detailed Replicant Definitions", 
+            name="Detailed Replicant Definitions",
             description="Full persona specifications for all replicants",
-            mimeType="application/json"
+            mimeType="application/json",
         ),
         types.Resource(
             uri="seg://framework/components",
             name="SEG Framework Components",
             description="Core 6-component persona architecture documentation",
-            mimeType="text/markdown"
+            mimeType="text/markdown",
         ),
         types.Resource(
             uri="seg://templates/council",
             name="Council Protocol Templates",
             description="Templates for multi-persona reasoning sessions",
-            mimeType="application/json"
+            mimeType="application/json",
         ),
         types.Resource(
             uri="seg://examples/personas",
             name="Example Persona Implementations",
             description="Fully developed personas (Weil, Lessing, Dickinson)",
-            mimeType="application/json"
-        )
+            mimeType="application/json",
+        ),
     ]
 
 
 @app.read_resource()
 async def read_resource(uri: str) -> str:
     """Read SEG framework resource by URI."""
-    
+
     if uri == "seg://replicants/all":
-        return json.dumps({
-            "replicants": list(REPLICANT_DEFINITIONS.keys()),
-            "count": len(REPLICANT_DEFINITIONS),
-            "description": "The 10 core SEG replicant archetypes for ensemble reasoning"
-        }, indent=2)
-    
+        all_names = persona_generator.registry.get_names()
+        return json.dumps(
+            {
+                "replicants": all_names,
+                "count": len(all_names),
+                "description": "The complete collection of SEG replicant archetypes (core + custom)",
+            },
+            indent=2,
+        )
+
     elif uri == "seg://replicants/detailed":
-        return json.dumps(REPLICANT_DEFINITIONS, indent=2)
-    
+        return json.dumps(persona_generator.registry.get_all_definitions(), indent=2)
+
     elif uri == "seg://framework/components":
         return """# SEG Framework: 6-Component Persona Architecture
 
@@ -122,19 +245,23 @@ async def read_resource(uri: str) -> str:
 - Guides filtering of knowledge through specific lens
 - Establishes boundaries and expectations
 """
-    
+
     elif uri == "seg://templates/council":
         return json.dumps(SEG_TEMPLATES, indent=2)
-    
+
     elif uri == "seg://examples/personas":
         examples_path = SERVER_ROOT.parent / "docs"
         personas = {}
-        for file in ["simone_weil_seg.md", "doris_lessing.md", "emily_dickinson.md"]:
-            file_path = examples_path / file
+        for filename in [
+            "simone_weil_seg.md",
+            "doris_lessing.md",
+            "emily_dickinson.md",
+        ]:
+            file_path = examples_path / filename
             if file_path.exists():
-                personas[file.stem] = file_path.read_text()
+                personas[Path(filename).stem] = file_path.read_text()
         return json.dumps(personas, indent=2)
-    
+
     else:
         raise ValueError(f"Unknown resource URI: {uri}")
 
@@ -145,135 +272,289 @@ async def list_tools() -> List[types.Tool]:
     return [
         types.Tool(
             name="generate_persona",
-            description="Generate a complete SEG persona using the 6-component architecture",
+            description="Generate a complete SEG persona using the 6-component architecture (Anchor, Sensory, Emotional, Philosophy, Linguistic, Directive).",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "name": {"type": "string", "description": "Persona name"},
-                    "age": {"type": "integer", "description": "Age in years"},
-                    "profession": {"type": "string", "description": "Primary profession or role"},
-                    "location": {"type": "string", "description": "Geographic/cultural context"},
-                    "defining_experience": {"type": "string", "description": "Core emotional/formative experience"},
-                    "domain_expertise": {"type": "string", "description": "Area of specialized knowledge"},
-                    "philosophical_stance": {"type": "string", "description": "Core worldview or belief system"},
-                    "style_preferences": {"type": "string", "description": "Communication style and linguistic preferences"}
+                    "age": {"type": "integer", "description": "Age in years", "minimum": 1, "maximum": 120},
+                    "profession": {
+                        "type": "string",
+                        "description": "Primary profession or role (e.g., 'Bio-ethicist', 'Deep-sea Welder')",
+                    },
+                    "location": {
+                        "type": "string",
+                        "description": "Geographic/cultural context",
+                    },
+                    "defining_experience": {
+                        "type": "string",
+                        "description": "Core emotional/formative experience that defines their worldview",
+                    },
+                    "domain_expertise": {
+                        "type": "string",
+                        "description": "Area of specialized knowledge",
+                    },
+                    "philosophical_stance": {
+                        "type": "string",
+                        "description": "Core worldview or belief system",
+                    },
+                    "style_preferences": {
+                        "type": "string",
+                        "description": "Communication style and linguistic preferences",
+                    },
+                    "molecular_self": {
+                        "type": "object",
+                        "description": "Section 0: Molecular Self generative substrate (key-value pairs)",
+                    },
                 },
-                "required": ["name", "profession", "defining_experience"]
-            }
+                "required": ["name", "profession", "defining_experience"],
+                "examples": [
+                    {
+                        "name": "Elias Thorne",
+                        "profession": "Chronobiologist",
+                        "defining_experience": "Witnessing the northern lights while recovering from a childhood illness",
+                        "philosophical_stance": "Time is not a line, but a series of overlapping rhythms",
+                    }
+                ],
+            },
         ),
         types.Tool(
             name="run_council_session",
-            description="Orchestrate a multi-persona reasoning session using selected replicants",
+            description="Orchestrate a multi-persona reasoning session using selected replicants to explore complex premises.",
             inputSchema={
-                "type": "object", 
+                "type": "object",
                 "properties": {
-                    "premise": {"type": "string", "description": "Core question or scenario to explore"},
+                    "premise": {
+                        "type": "string",
+                        "description": "Core question or scenario to explore",
+                    },
                     "replicants": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "List of replicants to include (2-10 personas)"
+                        "description": "List of replicants to include (2-10 personas)",
                     },
                     "mode": {
                         "type": "string",
-                        "enum": ["dialogic", "braided_report", "strategic", "aesthetic"],
-                        "description": "Output format for the council session"
+                        "enum": [
+                            "dialogic",
+                            "braided_report",
+                            "strategic",
+                            "aesthetic",
+                        ],
+                        "description": "Output format for the council session",
                     },
-                    "constraints": {"type": "string", "description": "Optional constraints or rules"},
-                    "cycles": {"type": "integer", "description": "Number of reasoning cycles (1-5)", "default": 2}
+                    "constraints": {
+                        "type": "string",
+                        "description": "Optional constraints or rules for the discussion",
+                    },
+                    "cycles": {
+                        "type": "integer",
+                        "description": "Number of reasoning cycles (1-5)",
+                        "default": 2,
+                    },
                 },
-                "required": ["premise", "replicants"]
-            }
+                "required": ["premise", "replicants"],
+                "examples": [
+                    {
+                        "premise": "How does memory define sentience in a post-biological era?",
+                        "replicants": ["Weil", "Lessing", "Dickinson"],
+                        "mode": "dialogic",
+                    }
+                ],
+            },
         ),
         types.Tool(
             name="analyze_through_seg_lens",
-            description="Analyze text or concepts through a specific SEG persona's experiential lens",
+            description="Analyze text or concepts through a specific SEG persona's experiential lens.",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "text": {"type": "string", "description": "Text or concept to analyze"},
-                    "persona_or_replicant": {"type": "string", "description": "Persona name or replicant type"},
-                    "analysis_focus": {"type": "string", "description": "Specific aspect to focus on"},
+                    "text": {
+                        "type": "string",
+                        "description": "Text or concept to analyze",
+                    },
+                    "persona_or_replicant": {
+                        "type": "string",
+                        "description": "Persona name or replicant type to use as the lens",
+                    },
+                    "analysis_focus": {
+                        "type": "string",
+                        "description": "Specific aspect to focus on (e.g., 'ethical implications', 'sensory details')",
+                    },
                     "depth": {
-                        "type": "string", 
+                        "type": "string",
                         "enum": ["surface", "moderate", "deep"],
-                        "description": "Depth of experiential filtering"
-                    }
+                        "description": "Depth of experiential filtering",
+                    },
                 },
-                "required": ["text", "persona_or_replicant"]
-            }
+                "required": ["text", "persona_or_replicant"],
+                "examples": [
+                    {
+                        "text": "The development of AGI",
+                        "persona_or_replicant": "Weil",
+                        "analysis_focus": "Sacrifice and attention",
+                        "depth": "deep",
+                    }
+                ],
+            },
         ),
         types.Tool(
             name="create_custom_replicant",
-            description="Create a new replicant archetype for the SEG framework",
+            description="Create and persist a new replicant archetype for the SEG framework.",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "archetype_name": {"type": "string", "description": "Name of the new archetype"},
-                    "core_function": {"type": "string", "description": "Primary cognitive/creative function"},
-                    "anchor_identity": {"type": "string", "description": "Base identity and context"},
+                    "archetype_name": {
+                        "type": "string",
+                        "description": "Unique name for the new archetype",
+                    },
+                    "core_function": {
+                        "type": "string",
+                        "description": "Primary cognitive or creative function of this replicant",
+                    },
+                    "anchor_identity": {
+                        "type": "string",
+                        "description": "Base identity and context summary",
+                    },
                     "sensory_web": {
                         "type": "object",
                         "properties": {
                             "visual": {"type": "string"},
                             "auditory": {"type": "string"},
                             "tactile": {"type": "string"},
-                            "olfactory": {"type": "string"}
-                        }
+                            "olfactory": {"type": "string"},
+                        },
                     },
-                    "emotional_core": {"type": "string", "description": "Defining emotional theme"},
-                    "philosophy": {"type": "string", "description": "Core beliefs and heuristics"},
-                    "linguistic_style": {"type": "string", "description": "Speech patterns and tics"},
-                    "directive": {"type": "string", "description": "How to use this replicant"}
+                    "emotional_core": {
+                        "type": "string",
+                        "description": "The defining emotional theme that filters their experience",
+                    },
+                    "philosophy": {
+                        "type": "string",
+                        "description": "Core beliefs and practical heuristics",
+                    },
+                    "linguistic_style": {
+                        "type": "string",
+                        "description": "Distinctive speech patterns and tics",
+                    },
+                    "directive": {
+                        "type": "string",
+                        "description": "Strict instructions on how this persona should operate",
+                    },
                 },
-                "required": ["archetype_name", "core_function", "directive"]
-            }
+                "required": ["archetype_name", "core_function", "directive"],
+            },
         ),
         types.Tool(
             name="get_replicant_details",
-            description="Get detailed information about a specific replicant archetype",
+            description="Get detailed architectural specifications for a specific replicant archetype.",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "replicant_name": {
                         "type": "string",
-                        "enum": list(REPLICANT_DEFINITIONS.keys()),
-                        "description": "Name of the replicant to examine"
+                        "description": "Name of the replicant to examine",
                     }
                 },
-                "required": ["replicant_name"]
-            }
-        )
+                "required": ["replicant_name"],
+            },
+        ),
+        types.Tool(
+            name="start_seg_council",
+            description="Initialize a high-fidelity CrewAI council session (asynchronous).",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "premise": {
+                        "type": "string",
+                        "description": "Core question or scenario to explore",
+                    },
+                    "agent_ids": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of replicants to include",
+                    },
+                },
+                "required": ["premise", "agent_ids"],
+            },
+        ),
+        types.Tool(
+            name="get_seg_council_status",
+            description="Retrieve the current status, progress, and logs of an active SEG council session.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "session_id": {
+                        "type": "string",
+                        "description": "The unique ID returned by start_seg_council",
+                    }
+                },
+                "required": ["session_id"],
+            },
+        ),
     ]
 
 
 @app.call_tool()
 async def call_tool(name: str, arguments: Dict[str, Any]) -> List[types.TextContent]:
     """Handle tool calls for SEG operations."""
-    
+
     if name == "generate_persona":
-        result = await persona_generator.generate_persona(**arguments)
+        args = GeneratePersonaArgs(**arguments)
+        result = await persona_generator.generate_persona(**args.dict())
         return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
-    
+
     elif name == "run_council_session":
-        result = await council_orchestrator.run_session(**arguments)
+        args = RunCouncilSessionArgs(**arguments)
+        result = await council_orchestrator.run_session(**args.dict())
         return [types.TextContent(type="text", text=result)]
-    
+
     elif name == "analyze_through_seg_lens":
-        result = await persona_generator.analyze_through_lens(**arguments)
+        args = AnalyzeLensArgs(**arguments)
+        result = await persona_generator.analyze_through_lens(**args.dict())
+        if result.startswith("Unknown persona or replicant"):
+            valid_replicants = persona_generator.registry.get_names()
+            valid_personas = list(persona_generator.generated_personas.keys())
+            return [
+                types.TextContent(
+                    type="text",
+                    text=f"{result}. Available replicants: {', '.join(valid_replicants)}. Available personas: {', '.join(valid_personas)}",
+                )
+            ]
         return [types.TextContent(type="text", text=result)]
-    
+
     elif name == "create_custom_replicant":
-        result = await persona_generator.create_custom_replicant(**arguments)
+        args = CreateReplicantArgs(**arguments)
+        result = await persona_generator.create_custom_replicant(**args.dict())
         return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
-    
+
     elif name == "get_replicant_details":
-        replicant_name = arguments["replicant_name"]
-        if replicant_name in REPLICANT_DEFINITIONS:
-            result = REPLICANT_DEFINITIONS[replicant_name]
+        args = GetReplicantDetailsArgs(**arguments)
+        replicant_name = args.replicant_name
+        result = persona_generator.registry.get_definition(replicant_name)
+        if result:
             return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
         else:
-            return [types.TextContent(type="text", text=f"Replicant '{replicant_name}' not found")]
-    
+            valid_names = persona_generator.registry.get_names()
+            return [
+                types.TextContent(
+                    type="text",
+                    text=f"Replicant '{replicant_name}' not found. Available replicants: {', '.join(valid_names)}",
+                )
+            ]
+
+    elif name == "start_seg_council":
+        args = StartSegCouncilArgs(**arguments)
+        session_id = await council_manager.start_session(**args.dict())
+        return [
+            types.TextContent(type="text", text=json.dumps({"session_id": session_id}))
+        ]
+
+    elif name == "get_seg_council_status":
+        args = GetSegCouncilStatusArgs(**arguments)
+        status = council_manager.get_status(args.session_id)
+        return [types.TextContent(type="text", text=json.dumps(status, indent=2))]
+
     else:
         raise ValueError(f"Unknown tool: {name}")
 
@@ -289,14 +570,14 @@ async def list_prompts() -> List[types.Prompt]:
                 types.PromptArgument(
                     name="domain",
                     description="Domain of expertise or context",
-                    required=True
+                    required=True,
                 ),
                 types.PromptArgument(
                     name="complexity",
                     description="Complexity level (simple/moderate/complex)",
-                    required=False
-                )
-            ]
+                    required=False,
+                ),
+            ],
         ),
         types.Prompt(
             name="council_protocol",
@@ -305,14 +586,14 @@ async def list_prompts() -> List[types.Prompt]:
                 types.PromptArgument(
                     name="session_type",
                     description="Type of council session (exploration/synthesis/action/aesthetic)",
-                    required=True
+                    required=True,
                 ),
                 types.PromptArgument(
                     name="participant_count",
                     description="Number of participants (2-10)",
-                    required=False
-                )
-            ]
+                    required=False,
+                ),
+            ],
         ),
         types.Prompt(
             name="experiential_analysis",
@@ -321,21 +602,21 @@ async def list_prompts() -> List[types.Prompt]:
                 types.PromptArgument(
                     name="analysis_type",
                     description="Type of analysis (philosophical/practical/creative)",
-                    required=True
+                    required=True,
                 )
-            ]
-        )
+            ],
+        ),
     ]
 
 
 @app.get_prompt()
 async def get_prompt(name: str, arguments: Dict[str, str]) -> types.GetPromptResult:
     """Get specific SEG prompt template."""
-    
+
     if name == "seg_persona_creation":
         domain = arguments.get("domain", "general")
         complexity = arguments.get("complexity", "moderate")
-        
+
         prompt_text = f"""# SEG Persona Creation Protocol
 
 ## Target Domain: {domain}
@@ -380,15 +661,15 @@ Apply this framework to create a {complexity} persona for {domain} contexts."""
             messages=[
                 types.PromptMessage(
                     role="user",
-                    content=types.TextContent(type="text", text=prompt_text)
+                    content=types.TextContent(type="text", text=prompt_text),
                 )
-            ]
+            ],
         )
-    
+
     elif name == "council_protocol":
         session_type = arguments.get("session_type", "exploration")
         participant_count = arguments.get("participant_count", "5")
-        
+
         prompt_text = f"""# SEG Council Protocol
 
 ## Session Type: {session_type.title()}
@@ -402,7 +683,7 @@ Apply this framework to create a {complexity} persona for {domain} contexts."""
 ### 2. Ensemble Selection
 Choose {participant_count} personas from available replicants or custom personas based on:
 - Complementary perspectives
-- Relevant domain expertise  
+- Relevant domain expertise
 - Balanced cognitive styles
 
 ### 3. Flow Protocol
@@ -428,15 +709,15 @@ Begin the {session_type} council session."""
             description=f"Council protocol for {session_type} sessions with {participant_count} participants",
             messages=[
                 types.PromptMessage(
-                    role="user", 
-                    content=types.TextContent(type="text", text=prompt_text)
+                    role="user",
+                    content=types.TextContent(type="text", text=prompt_text),
                 )
-            ]
+            ],
         )
-    
+
     elif name == "experiential_analysis":
         analysis_type = arguments.get("analysis_type", "philosophical")
-        
+
         prompt_text = f"""# SEG Experiential Analysis Protocol
 
 ## Analysis Type: {analysis_type.title()}
@@ -471,11 +752,11 @@ Apply {analysis_type} experiential analysis to the target content."""
             messages=[
                 types.PromptMessage(
                     role="user",
-                    content=types.TextContent(type="text", text=prompt_text)
+                    content=types.TextContent(type="text", text=prompt_text),
                 )
-            ]
+            ],
         )
-    
+
     else:
         raise ValueError(f"Unknown prompt: {name}")
 
@@ -484,13 +765,9 @@ async def main():
     """Run the SEG MCP server."""
     logger.info("Starting SEG MCP Server v1.1.0")
     logger.info("Simulated Experiential Grounding framework ready")
-    
+
     async with stdio_server() as (read_stream, write_stream):
-        await app.run(
-            read_stream,
-            write_stream,
-            app.create_initialization_options()
-        )
+        await app.run(read_stream, write_stream, app.create_initialization_options())
 
 
 if __name__ == "__main__":

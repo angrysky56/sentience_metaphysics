@@ -5,6 +5,8 @@ SEG MCP Server Setup Script
 Simple setup script to initialize the SEG MCP server environment.
 """
 
+import importlib
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -13,39 +15,58 @@ from pathlib import Path
 def setup_environment():
     """Set up the Python environment for the SEG MCP server."""
     print("🔧 Setting up SEG MCP Server environment...")
-    
+
     # Check if we're in the right directory
     server_dir = Path(__file__).parent
     if not (server_dir / "server.py").exists():
-        print("❌ Error: server.py not found. Run this script from the mcp_server directory.")
+        print(
+            "❌ Error: server.py not found. Run this script from the mcp_server directory."
+        )
         return False
-    
+
     # Install dependencies using uv if available, otherwise pip
-    try:
-        subprocess.run(["uv", "--version"], check=True, capture_output=True)
-        print("📦 Installing dependencies with uv...")
-        subprocess.run(["uv", "add", "-r", "requirements.txt"], check=True)
-        print("✅ Dependencies installed successfully with uv")
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    uv_path = shutil.which("uv")
+    if uv_path:
+        try:
+            subprocess.run([uv_path, "--version"], check=True, capture_output=True)
+            print("📦 Installing dependencies with uv...")
+            subprocess.run([uv_path, "add", "-r", "requirements.txt"], check=True)
+            print("✅ Dependencies installed successfully with uv")
+        except subprocess.CalledProcessError:
+            print("⚠️ uv failed, falling back to pip...")
+            uv_path = None
+
+    if not uv_path:
         print("📦 Installing dependencies with pip...")
-        subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], check=True)
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"],
+            check=True,
+        )
         print("✅ Dependencies installed successfully with pip")
-    
+
     return True
 
 
 def test_server():
     """Test that the server can be imported without errors."""
     print("🧪 Testing server imports...")
+    server_dir = Path(__file__).resolve().parent
+    # Add parent to sys.path to support 'mcp_server' package imports
+    parent_dir = str(server_dir.parent)
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+
     try:
-        import server
-        import seg_core
-        import replicants
-        import templates
+        # Import as package members to match the standard execution pattern
+        modules = ["replicants", "seg_core", "server", "templates"]
+        for mod in modules:
+            importlib.import_module(f"mcp_server.{mod}")
+
         print("✅ All modules import successfully")
         return True
     except ImportError as e:
         print(f"❌ Import error: {e}")
+        print("💡 Hint: Try running this with 'uv run python setup.py' if you are in a uv project.")
         return False
 
 
@@ -90,7 +111,7 @@ def show_usage():
 - Resources provide comprehensive framework documentation
 
 📚 Framework Information:
-Your SEG (Simulated Experiential Grounding) framework is now accessible 
+Your SEG (Simulated Experiential Grounding) framework is now accessible
 programmatically through standardized MCP interfaces. AI systems can:
 - Generate sophisticated personas with experiential grounding
 - Run multi-perspective reasoning sessions
@@ -104,20 +125,20 @@ Happy reasoning! 🧠✨
 def main():
     """Main setup function."""
     print("🎭 SEG (Simulated Experiential Grounding) MCP Server Setup\n")
-    
+
     # Setup environment
     if not setup_environment():
         print("❌ Setup failed!")
         return 1
-    
+
     # Test imports
     if not test_server():
         print("❌ Server testing failed!")
         return 1
-    
+
     # Show usage
     show_usage()
-    
+
     print("🎉 Setup complete! Your SEG framework is now ready for MCP integration.")
     return 0
 

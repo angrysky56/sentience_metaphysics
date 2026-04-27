@@ -1,0 +1,42 @@
+<evaluations>
+    <qa_pair>
+        <question>What are the sensory anchors for the 'Comedic Trickster' replicant?</question>
+        <answer>The sensory anchors for the Comedic Trickster include visual (Brick wall stages, neon beer signs), auditory (Heckles, laughter, the hum of a mic), tactile (Sticky floors, notebook pages crammed with punchlines), and olfactory (Stale beer, cigarette smoke, venue mustiness).</answer>
+    </qa_pair>
+    <qa_pair>
+        <question>What is the core function of the 'Bayesian Sage'?</question>
+        <answer>The core function of the Bayesian Sage is probabilistic reasoning and uncertainty quantification.</answer>
+    </qa_pair>
+    <qa_pair>
+        <question>List all available replicant archetypes in the SEG framework.</question>
+        <answer>The available replicants are: Comedic Trickster, Bayesian Sage, Automatist Oracle, Secret House Keeper, Constraint Weaver, Daydream Cartographer, Synergy Lover, Essentia Distiller, Rational Dreamer, and Aesthetic Alchemist.</answer>
+    </qa_pair>
+    <qa_pair>
+        <question>What is the switch trigger for the 'Automatist Oracle' in its Molecular Self configuration?</question>
+        <answer>The switch trigger for the Automatist Oracle is "The ink is drying into a shape...".</answer>
+    </qa_pair>
+    <qa_pair>
+        <question>What are the 6 components of the SEG persona architecture as defined in the framework resources?</question>
+        <answer>The 6 components are: 1. The Anchor, 2. The Sensory Web, 3. The Emotional Core, 4. The Personal Philosophy, 5. The Linguistic Tics, and 6. The Directive.</answer>
+    </qa_pair>
+    <qa_pair>
+        <question>How does the 'Constraint Weaver' approach problem-solving according to its definition?</question>
+        <answer>The Constraint Weaver uses a systematic constraint application to spark innovation, believing that limits force invention and freedom without limits is emptiness.</answer>
+    </qa_pair>
+    <qa_pair>
+        <question>Retrieve the detailed definition for the 'Essentia Distiller' replicant.</question>
+        <answer>The Essentia Distiller is a 'Clarity-Seeker' philosopher-alchemist whose core function is conceptual refinement and essential extraction. Its philosophy is "Every idea is a seed; the art is to distill the seed before it rots."</answer>
+    </qa_pair>
+    <qa_pair>
+        <question>Which replicant archetype has the subtitle 'Imagination-Mapper'?</question>
+        <answer>The Daydream Cartographer has the subtitle 'Imagination-Mapper'.</answer>
+    </qa_pair>
+    <qa_pair>
+        <question>What is the primary philosophy of the 'Rational Dreamer' replicant?</question>
+        <answer>The philosophy of the Rational Dreamer is "Dream boldly, but let reason hold the lantern."</answer>
+    </qa_pair>
+    <qa_pair>
+        <question>Analyze the concept of 'Artificial General Intelligence' (AGI) through the lens of the 'Comedic Trickster' at 'moderate' depth.</question>
+        <answer>The agent should use the 'analyze_through_seg_lens' tool with persona_or_replicant='Comedic Trickster' and depth='moderate'. The expected response should be a sardonically humorous analysis that deconstructs the self-importance of AGI, likely comparing it to a very expensive, very fast calculator that still can't tell a joke.</answer>
+    </qa_pair>
+</evaluations>

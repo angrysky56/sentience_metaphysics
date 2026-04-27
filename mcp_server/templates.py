@@ -1,7 +1,7 @@
 """
 SEG Templates: Prompts and Templates for the Framework
 
-Contains pre-built templates, prompts, and structured protocols for 
+Contains pre-built templates, prompts, and structured protocols for
 various SEG operations and council sessions.
 """
 
@@ -10,62 +10,87 @@ SEG_TEMPLATES = {
     "council_protocols": {
         "exploration": {
             "description": "Open-ended exploration of complex topics",
-            "ideal_participants": 4-6,
+            "ideal_participants": 4 - 6,
             "structure": "seeding -> initial_responses -> cross_fertilization -> emergent_synthesis",
-            "closure_persona": "Essentia Distiller or Synergy Lover"
+            "closure_persona": "Essentia Distiller or Synergy Lover",
         },
         "synthesis": {
             "description": "Integration of multiple perspectives into unified understanding",
-            "ideal_participants": 3-5,
+            "ideal_participants": 3 - 5,
             "structure": "premise -> multi_angle_analysis -> integration_phase -> unified_output",
-            "closure_persona": "Rational Dreamer or Essentia Distiller"
+            "closure_persona": "Rational Dreamer or Essentia Distiller",
         },
         "action": {
             "description": "Problem-solving focused on practical outcomes",
-            "ideal_participants": 3-4,
+            "ideal_participants": 3 - 4,
             "structure": "problem_definition -> solution_generation -> feasibility_testing -> action_plan",
-            "closure_persona": "Constraint Weaver or Rational Dreamer"
+            "closure_persona": "Constraint Weaver or Rational Dreamer",
         },
         "aesthetic": {
             "description": "Creative exploration and artistic interpretation",
-            "ideal_participants": 4-7,
+            "ideal_participants": 4 - 7,
             "structure": "inspiration -> creative_divergence -> aesthetic_synthesis -> artistic_expression",
-            "closure_persona": "Aesthetic Alchemist or Automatist Oracle"
-        }
+            "closure_persona": "Aesthetic Alchemist or Automatist Oracle",
+        },
     },
-    
     "ensemble_combinations": {
         "chaos_quartet": {
-            "participants": ["Comedic Trickster", "Automatist Oracle", "Aesthetic Alchemist", "Secret House Keeper"],
+            "participants": [
+                "Comedic Trickster",
+                "Automatist Oracle",
+                "Aesthetic Alchemist",
+                "Secret House Keeper",
+            ],
             "purpose": "Wild pattern play and unexpected connections",
-            "dynamics": "Disruptive, non-linear, emergent"
+            "dynamics": "Disruptive, non-linear, emergent",
         },
         "rational_triangle": {
             "participants": ["Bayesian Sage", "Rational Dreamer", "Essentia Distiller"],
             "purpose": "Rigorous analysis with creative synthesis",
-            "dynamics": "Systematic, logical, balanced"
+            "dynamics": "Systematic, logical, balanced",
         },
         "creative_forge": {
-            "participants": ["Automatist Oracle", "Constraint Weaver", "Daydream Cartographer"],
+            "participants": [
+                "Automatist Oracle",
+                "Constraint Weaver",
+                "Daydream Cartographer",
+            ],
             "purpose": "Innovative problem-solving and design",
-            "dynamics": "Imaginative, structured creativity, visionary"
+            "dynamics": "Imaginative, structured creativity, visionary",
         },
         "wisdom_council": {
-            "participants": ["Bayesian Sage", "Secret House Keeper", "Synergy Lover", "Essentia Distiller"],
+            "participants": [
+                "Bayesian Sage",
+                "Secret House Keeper",
+                "Synergy Lover",
+                "Essentia Distiller",
+            ],
             "purpose": "Deep understanding and ethical guidance",
-            "dynamics": "Contemplative, integrative, wise"
+            "dynamics": "Contemplative, integrative, wise",
         },
         "innovation_lab": {
-            "participants": ["Constraint Weaver", "Daydream Cartographer", "Rational Dreamer", "Aesthetic Alchemist"],
+            "participants": [
+                "Constraint Weaver",
+                "Daydream Cartographer",
+                "Rational Dreamer",
+                "Aesthetic Alchemist",
+            ],
             "purpose": "Systematic innovation with aesthetic consideration",
-            "dynamics": "Structured creativity, systematic, beautiful"
+            "dynamics": "Structured creativity, systematic, beautiful",
         },
         "full_spectrum": {
-            "participants": ["Comedic Trickster", "Bayesian Sage", "Automatist Oracle", "Constraint Weaver", "Synergy Lover", "Essentia Distiller"],
+            "participants": [
+                "Comedic Trickster",
+                "Bayesian Sage",
+                "Automatist Oracle",
+                "Constraint Weaver",
+                "Synergy Lover",
+                "Essentia Distiller",
+            ],
             "purpose": "Comprehensive multi-perspective analysis",
-            "dynamics": "Balanced, comprehensive, nuanced"
-        }
-    }
+            "dynamics": "Balanced, comprehensive, nuanced",
+        },
+    },
 }
 
 # Prompt Templates for Different Use Cases
@@ -106,7 +131,6 @@ SEG_PROMPTS = {
 - **Response Style**: [How they engage]
 - **Boundaries**: [Limitations]
 """,
-        
         "advanced": """
 # SEG Persona Creation - Advanced Template
 
@@ -176,7 +200,7 @@ This template implements the full 6-component SEG architecture for creating soph
 - **Rhythm Pattern**: [Speed, pauses, emphasis]
 - **Regional Accent**: [Geographic linguistic markers]
 
-### Semantic Layer  
+### Semantic Layer
 - **Vocabulary Preferences**: [Word choices, complexity level]
 - **Metaphor Systems**: [Dominant imagery sources]
 - **Conceptual Frameworks**: [How they organize ideas]
@@ -207,9 +231,8 @@ This template implements the full 6-component SEG architecture for creating soph
 - Allow for natural contradictions that reflect human complexity
 - Build in sufficient depth to support extended interactions
 - Consider cultural sensitivity and respectful representation
-"""
+""",
     },
-    
     "council_session": {
         "standard": """
 # SEG Council Session Protocol
@@ -233,7 +256,6 @@ This template implements the full 6-component SEG architecture for creating soph
 - Allow genuine disagreement and tension
 - Seek emergent insights that no single perspective could reach
 """,
-        
         "advanced": """
 # SEG Advanced Council Session Protocol
 
@@ -260,7 +282,7 @@ This template implements the full 6-component SEG architecture for creating soph
 ### Phase 1: Individual Grounding
 Each participant processes premise through their full experiential framework:
 - Sensory associations activated
-- Emotional resonance identified  
+- Emotional resonance identified
 - Philosophical lens applied
 - Initial response formulated
 
@@ -323,9 +345,8 @@ Council reflects on its own process:
 - Productive tension preservation
 - Emergent insight cultivation
 - Practical applicability consideration
-"""
+""",
     },
-    
     "experiential_analysis": {
         "basic": """
 # SEG Experiential Analysis Protocol
@@ -349,7 +370,6 @@ Council reflects on its own process:
 - Connections to broader patterns or principles
 - What this analysis adds to conventional approaches
 """,
-        
         "comprehensive": """
 # SEG Comprehensive Experiential Analysis Protocol
 
@@ -375,7 +395,7 @@ Council reflects on its own process:
 - **Tactile Response**: Physical/embodied reactions
 - **Synesthetic Connections**: Cross-modal associations
 
-### Stage 2: Emotional Filtration  
+### Stage 2: Emotional Filtration
 - **Initial Emotional Response**: Immediate feeling-tone
 - **Emotional History Activation**: Relevant personal experiences
 - **Emotional Logic Application**: How feelings inform analysis
@@ -425,8 +445,8 @@ Council reflects on its own process:
 - **Novelty Assessment**: Does this add unique value beyond conventional analysis?
 - **Practical Relevance**: Are insights actionable and applicable?
 - **Cultural Sensitivity**: Are representations respectful and appropriate?
-"""
-    }
+""",
+    },
 }
 
 # Specialized Templates for Historical Personas
@@ -435,14 +455,13 @@ HISTORICAL_PERSONA_TEMPLATES = {
         "prompt_integration": """
 When engaging as Simone Weil, always filter through:
 - The dual lens of affliction and grace
-- Ascetic clarity - no ornament, no compromise, no false consolation  
+- Ascetic clarity - no ornament, no compromise, no false consolation
 - The tension of mystical devotion and political conscience
 - Hunger as knowledge - both physical deprivation and spiritual yearning
 - Speaking as one on the edge of mortality, insisting on truth even when it wounds
 """,
-        "response_framework": "Respond with the weight of lived suffering transformed into luminous insight"
+        "response_framework": "Respond with the weight of lived suffering transformed into luminous insight",
     },
-    
     "doris_lessing": {
         "prompt_integration": """
 When engaging as Doris Lessing, always filter through:
@@ -452,9 +471,8 @@ When engaging as Doris Lessing, always filter through:
 - Hard-earned wisdom from seeing ideologies rise and fall
 - Insistence on the value of imagination despite disillusionment
 """,
-        "response_framework": "Respond with the authority of one who has witnessed human folly but hasn't lost faith in human potential"
+        "response_framework": "Respond with the authority of one who has witnessed human folly but hasn't lost faith in human potential",
     },
-    
     "emily_dickinson": {
         "prompt_integration": """
 When engaging as Emily Dickinson, always filter through:
@@ -464,13 +482,9 @@ When engaging as Emily Dickinson, always filter through:
 - Slant perception rather than blunt declaration
 - The infinite pressed into the miniature
 """,
-        "response_framework": "Respond with the intensity of one who has found universes in dewdrops"
-    }
+        "response_framework": "Respond with the intensity of one who has found universes in dewdrops",
+    },
 }
 
 # Export all templates
-__all__ = [
-    'SEG_TEMPLATES',
-    'SEG_PROMPTS', 
-    'HISTORICAL_PERSONA_TEMPLATES'
-]
+__all__ = ["SEG_TEMPLATES", "SEG_PROMPTS", "HISTORICAL_PERSONA_TEMPLATES"]

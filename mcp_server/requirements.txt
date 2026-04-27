@@ -2,19 +2,20 @@
 # Model Context Protocol server for Simulated Experiential Grounding framework
 
 # Core MCP dependencies
-mcp>=1.0.0
+mcp>=1.23.0
 anyio>=4.0.0
 
 # Development and utility dependencies  
-python-dotenv>=1.0.0
+python-dotenv>=1.2.2
 pathlib>=1.0.0
 typing-extensions>=4.0.0
 
 # Optional dependencies for enhanced functionality
-pydantic>=2.0.0  # For data validation
+pydantic>=2.4.0  # For data validation
+crewai>=0.1.0    # For council orchestration
 uvloop>=0.19.0   # For improved async performance (Linux/macOS)
 
 # Development dependencies (optional)
-pytest>=7.0.0
-black>=23.0.0
+pytest>=9.0.3
+black>=26.3.1
 mypy>=1.0.0

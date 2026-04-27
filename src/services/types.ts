@@ -18,6 +18,12 @@ export interface AIResponse {
   error?: string;
 }
 
+export interface ConversationEntry {
+  role: 'user' | 'persona';
+  content: string;
+  timestamp: number;
+}
+
 // Default configurations for different providers
 export const DEFAULT_CONFIGS: Record<AIProvider, Partial<AIServiceConfig>> = {
   ollama: {
@@ -41,5 +47,7 @@ export const DEFAULT_CONFIGS: Record<AIProvider, Partial<AIServiceConfig>> = {
 // Storage keys for configurations
 export const STORAGE_KEYS = {
   AI_CONFIG: 'seg_v2_ai_config',
-  API_KEYS: 'seg_v2_api_keys'
+  API_KEYS: 'seg_v2_api_keys',
+  CURRENT_SESSION: 'seg_v3_current_session',
+  NARRATIVE_HISTORY: 'seg_v3_narrative_history'
 };

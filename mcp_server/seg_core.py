@@ -4,17 +4,24 @@ SEG Core: Persona Generation and Council Orchestration
 Implements the core logic for Simulated Experiential Grounding framework.
 """
 
-import json
 import random
 from typing import Any, Dict, List, Optional
-from replicants import REPLICANT_DEFINITIONS
+
+from .ai_service import AIService
+from .persistence import SEGPersistenceManager
+from .registry import ReplicantRegistry
+from .replicants import REPLICANT_DEFINITIONS
+from .templates import SEG_PROMPTS
 
 
 class SEGPersonaGenerator:
     """Generates SEG personas using the 6-component architecture."""
 
-    def __init__(self):
-        self.generated_personas = {}
+    def __init__(self, ai_service: Optional[AIService] = None, data_dir: str = "data"):
+        self.persistence = SEGPersistenceManager(data_dir=data_dir)
+        self.registry = ReplicantRegistry(self.persistence)
+        self.generated_personas = self.persistence.load_generated_personas()
+        self.ai_service = ai_service or AIService()
 
     async def generate_persona(
         self,
@@ -25,12 +32,14 @@ class SEGPersonaGenerator:
         location: Optional[str] = None,
         domain_expertise: Optional[str] = None,
         philosophical_stance: Optional[str] = None,
-        style_preferences: Optional[str] = None
+        style_preferences: Optional[str] = None,
+        molecular_self: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """Generate a complete SEG persona using the 6-component architecture."""
 
         # Auto-generate missing components if not provided
         if age is None:
+            # trunk-ignore(bandit/B311)
             age = random.randint(25, 75)
 
         if location is None:
@@ -64,7 +73,7 @@ class SEGPersonaGenerator:
                 "age": age,
                 "profession": profession,
                 "location": location,
-                "domain_expertise": domain_expertise
+                "domain_expertise": domain_expertise,
             },
             "sensory_web": sensory_web,
             "emotional_core": emotional_core,
@@ -72,12 +81,14 @@ class SEGPersonaGenerator:
             "linguistic_tics": linguistic_style,
             "directive": directive,
             "defining_experience": defining_experience,
+            "molecular_self": molecular_self,
             "creation_timestamp": "2025-01-09",
-            "version": "1.1"
+            "version": "1.2",
         }
 
-        # Store the generated persona
+        # Store and persist the generated persona
         self.generated_personas[name] = persona
+        self.persistence.save_generated_persona(persona)
 
         return persona
 
@@ -93,17 +104,17 @@ class SEGPersonaGenerator:
             "musician": "Cultural arts center",
             "doctor": "Medical district",
             "farmer": "Rural agricultural region",
-            "chef": "Culinary district"
+            "chef": "Culinary district",
         }
 
         # Try to match profession or provide generic
-        for key in location_map:
+        for key, location in location_map.items():
             if key in profession.lower():
-                return location_map[key]
+                return location
 
         return "Urban cultural center"
 
-    def _generate_sensory_web(self, profession: str, location: str) -> Dict[str, str]:
+    def _generate_sensory_web(self, profession: str, _location: str) -> Dict[str, str]:
         """Generate sensory anchors based on profession and location."""
 
         # Base sensory patterns by profession type
@@ -112,20 +123,20 @@ class SEGPersonaGenerator:
                 "visual": "Laboratory equipment, data visualizations, microscope slides",
                 "auditory": "Hum of equipment, keyboard clicking, quiet concentration",
                 "tactile": "Cool metal surfaces, smooth glass, precise instruments",
-                "olfactory": "Chemical reagents, sterile air, ozone from electronics"
+                "olfactory": "Chemical reagents, sterile air, ozone from electronics",
             },
             "artist": {
                 "visual": "Color palettes, textured canvases, shifting light",
                 "auditory": "Brush strokes, gallery murmurs, traffic through windows",
                 "tactile": "Wet paint, rough canvas, smooth sculpting tools",
-                "olfactory": "Oil paint, turpentine, wooden easels"
+                "olfactory": "Oil paint, turpentine, wooden easels",
             },
             "writer": {
                 "visual": "Manuscript pages, coffee stains, window views",
                 "auditory": "Keyboard tapping, distant conversations, ambient cafe sounds",
                 "tactile": "Worn paper, smooth keyboard keys, warm coffee mug",
-                "olfactory": "Coffee brewing, old books, ink on paper"
-            }
+                "olfactory": "Coffee brewing, old books, ink on paper",
+            },
         }
 
         # Default sensory web
@@ -133,13 +144,13 @@ class SEGPersonaGenerator:
             "visual": "Natural lighting through windows, organized workspace",
             "auditory": "Quiet focus sounds, occasional distant activity",
             "tactile": "Familiar work tools, comfortable seating",
-            "olfactory": "Clean air, subtle environmental scents"
+            "olfactory": "Clean air, subtle environmental scents",
         }
 
         # Try to match profession
-        for key in sensory_patterns:
+        for key, patterns in sensory_patterns.items():
             if key in profession.lower():
-                return sensory_patterns[key]
+                return patterns
 
         return default_sensory
 
@@ -151,45 +162,42 @@ class SEGPersonaGenerator:
             "loss": {
                 "core_emotion": "Melancholic wisdom",
                 "emotional_color": "Bittersweet understanding",
-                "recurring_pattern": "Finding meaning in impermanence"
+                "recurring_pattern": "Finding meaning in impermanence",
             },
             "discovery": {
                 "core_emotion": "Wonder and curiosity",
                 "emotional_color": "Bright anticipation",
-                "recurring_pattern": "Seeking hidden connections"
+                "recurring_pattern": "Seeking hidden connections",
             },
             "struggle": {
                 "core_emotion": "Resilient determination",
                 "emotional_color": "Hard-earned confidence",
-                "recurring_pattern": "Transforming obstacles into strength"
+                "recurring_pattern": "Transforming obstacles into strength",
             },
             "connection": {
                 "core_emotion": "Deep empathy",
                 "emotional_color": "Warm understanding",
-                "recurring_pattern": "Building bridges between differences"
-            }
+                "recurring_pattern": "Building bridges between differences",
+            },
         }
 
         # Default emotional core
         default_emotional = {
             "core_emotion": "Thoughtful contemplation",
             "emotional_color": "Measured consideration",
-            "recurring_pattern": "Balancing multiple perspectives"
+            "recurring_pattern": "Balancing multiple perspectives",
         }
 
         # Try to match emotional themes in the experience
         experience_lower = defining_experience.lower()
-        for theme in emotional_themes:
+        for theme, emotional_data in emotional_themes.items():
             if theme in experience_lower:
-                return emotional_themes[theme]
+                return emotional_data
 
         return default_emotional
 
     def _generate_philosophy(
-        self,
-        domain: str,
-        experience: str,
-        stance: Optional[str] = None
+        self, domain: str, _experience: str, stance: Optional[str] = None
     ) -> Dict[str, str]:
         """Generate personal philosophy framework."""
 
@@ -202,26 +210,22 @@ class SEGPersonaGenerator:
                 "art": "Beauty reveals truths that logic cannot reach",
                 "education": "Understanding grows through patient cultivation",
                 "technology": "Tools should serve human flourishing",
-                "medicine": "Healing requires both knowledge and compassion"
+                "medicine": "Healing requires both knowledge and compassion",
             }
 
             core_belief = domain_philosophies.get(
-                domain.lower().split()[0],
-                "Wisdom comes through engaged experience"
+                domain.lower().split()[0], "Wisdom comes through engaged experience"
             )
 
         return {
             "core_belief": core_belief,
             "secondary_heuristic": "When uncertain, return to direct experience",
             "worldview_statement": "Reality is both structured and mysterious",
-            "decision_framework": "Balance rational analysis with intuitive wisdom"
+            "decision_framework": "Balance rational analysis with intuitive wisdom",
         }
 
     def _generate_linguistic_style(
-        self,
-        profession: str,
-        age: int,
-        preferences: Optional[str] = None
+        self, profession: str, age: int, preferences: Optional[str] = None
     ) -> Dict[str, Any]:
         """Generate linguistic patterns and speech style."""
 
@@ -230,11 +234,17 @@ class SEGPersonaGenerator:
         else:
             # Generate based on profession and age
             if age < 35:
-                speech_pattern = "Direct and energetic, comfortable with informal language"
+                speech_pattern = (
+                    "Direct and energetic, comfortable with informal language"
+                )
             elif age < 55:
-                speech_pattern = "Measured and precise, balancing formality with accessibility"
+                speech_pattern = (
+                    "Measured and precise, balancing formality with accessibility"
+                )
             else:
-                speech_pattern = "Thoughtful and reflective, drawing on accumulated experience"
+                speech_pattern = (
+                    "Thoughtful and reflective, drawing on accumulated experience"
+                )
 
         # Professional metaphor tendencies
         metaphor_map = {
@@ -242,19 +252,22 @@ class SEGPersonaGenerator:
             "artist": "Visual and aesthetic imagery",
             "teacher": "Growth and development",
             "engineer": "Building and construction",
-            "writer": "Narrative and storytelling"
+            "writer": "Narrative and storytelling",
         }
 
         metaphor_preference = metaphor_map.get(
-            profession.lower().split()[0],
-            "Concrete examples from daily experience"
+            profession.lower().split()[0], "Concrete examples from daily experience"
         )
 
         return {
             "speech_pattern": speech_pattern,
             "metaphor_preference": metaphor_preference,
             "cadence": "Natural conversational rhythm with thoughtful pauses",
-            "signature_phrases": ["In my experience...", "What I've found is...", "Consider this..."]
+            "signature_phrases": [
+                "In my experience...",
+                "What I've found is...",
+                "Consider this...",
+            ],
         }
 
     def _generate_directive(self, profession: str, domain: str) -> str:
@@ -270,54 +283,61 @@ class SEGPersonaGenerator:
         text: str,
         persona_or_replicant: str,
         analysis_focus: Optional[str] = None,
-        depth: str = "moderate"
+        depth: str = "moderate",
     ) -> str:
         """Analyze text through a specific persona's experiential lens."""
 
-        # Check if it's a known replicant
-        if persona_or_replicant in REPLICANT_DEFINITIONS:
-            replicant = REPLICANT_DEFINITIONS[persona_or_replicant]
+        # Check if it's a known replicant or custom replicant
+        molecular_self = None
+        replicant = self.registry.get_definition(persona_or_replicant)
+
+        if replicant:
             lens_description = f"Replicant: {persona_or_replicant}"
-            perspective = replicant.get("perspective", "Unknown perspective")
+            perspective = replicant.get("perspective") or replicant.get(
+                "directive", "Unknown perspective"
+            )
+            molecular_self = replicant.get("molecular_self")
         elif persona_or_replicant in self.generated_personas:
             persona = self.generated_personas[persona_or_replicant]
             lens_description = f"Persona: {persona['name']}"
             perspective = persona["directive"]
+            molecular_self = persona.get("molecular_self")
         else:
             return f"Unknown persona or replicant: {persona_or_replicant}"
 
-        depth_levels = {
-            "surface": "Basic filtering through persona lens",
-            "moderate": "Full experiential processing with context",
-            "deep": "Immersive perspective with emergent insights"
-        }
+        if molecular_self:
+            lens_description += "\n\nSection 0 (Molecular Self):\n"
+            for k, v in molecular_self.items():
+                lens_description += f"- {k.replace('_', ' ').title()}: {v}\n"
 
-        analysis = f"""# SEG Lens Analysis
+        analysis_prompt = SEG_PROMPTS["experiential_analysis"]["comprehensive"]
 
-## Analyzing through: {lens_description}
-## Analysis Depth: {depth} - {depth_levels[depth]}
-## Focus: {analysis_focus or 'General perspective'}
+        system_prompt = f"""You are analyzing content through the SEG (Simulated Experiential Grounding) framework.
+Your task is to embody the following perspective and provide a deep analysis.
 
-### Source Text:
-{text}
+{lens_description}
+Perspective: {perspective}
 
-### Analysis:
-[This would be processed through the specific persona's experiential framework,
-applying their sensory web, emotional core, and philosophical lens to provide
-a unique perspective on the text that emerges from their 'lived experience'
-rather than generic analysis.]
-
-### Key Insights:
-- Perspective: {perspective}
-- Unique angle: Based on this persona's specific experiential grounding
-- Emergent connections: Links to persona's domain expertise and emotional history
-
-Note: In a full implementation, this would involve complex natural language
-processing to actually apply the persona's full experiential framework to
-generate authentic perspective-filtered analysis.
+Use the following protocol:
+{analysis_prompt}
 """
 
-        return analysis
+        user_content = f"""Source Text:
+{text}
+
+Analysis Focus: {analysis_focus or 'General perspective'}
+Depth: {depth}
+"""
+
+        response = await self.ai_service.generate_response(
+            messages=[{"role": "user", "content": user_content}],
+            system_prompt=system_prompt,
+        )
+
+        if response.error:
+            return f"Error during analysis: {response.error}"
+
+        return response.content
 
     async def create_custom_replicant(
         self,
@@ -328,7 +348,7 @@ generate authentic perspective-filtered analysis.
         sensory_web: Optional[Dict[str, str]] = None,
         emotional_core: Optional[str] = None,
         philosophy: Optional[str] = None,
-        linguistic_style: Optional[str] = None
+        linguistic_style: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Create a new custom replicant archetype."""
 
@@ -341,17 +361,24 @@ generate authentic perspective-filtered analysis.
                 "visual": f"Imagery related to {core_function}",
                 "auditory": f"Sounds associated with {core_function} work",
                 "tactile": f"Textures relevant to {core_function}",
-                "olfactory": f"Scents from {core_function} environment"
+                "olfactory": f"Scents from {core_function} environment",
             }
 
         if not emotional_core:
-            emotional_core = f"Passion for {core_function} and its transformative potential"
+            emotional_core = (
+                f"Passion for {core_function} and its transformative potential"
+            )
 
         if not philosophy:
-            philosophy = f"Excellence in {core_function} serves broader human understanding"
+            philosophy = (
+                f"Excellence in {core_function} serves broader human understanding"
+            )
 
         if not linguistic_style:
-            linguistic_style = f"Technical precision balanced with accessible explanation in {core_function} domain"
+            linguistic_style = (
+                f"Technical precision balanced with accessible "
+                f"explanation in {core_function} domain"
+            )
 
         replicant = {
             "archetype_name": archetype_name,
@@ -363,8 +390,11 @@ generate authentic perspective-filtered analysis.
             "linguistic_style": linguistic_style,
             "directive": directive,
             "creation_method": "custom_generated",
-            "version": "1.1"
+            "version": "1.1",
         }
+
+        # Persist the custom replicant
+        self.registry.add_custom_replicant(replicant)
 
         return replicant
 
@@ -372,8 +402,14 @@ generate authentic perspective-filtered analysis.
 class SEGCouncilOrchestrator:
     """Orchestrates multi-persona reasoning sessions."""
 
-    def __init__(self):
+    def __init__(
+        self,
+        ai_service: Optional[AIService] = None,
+        registry: Optional[ReplicantRegistry] = None,
+    ):
         self.active_sessions = {}
+        self.ai_service = ai_service or AIService()
+        self.registry = registry
 
     async def run_session(
         self,
@@ -381,14 +417,19 @@ class SEGCouncilOrchestrator:
         replicants: List[str],
         mode: str = "dialogic",
         constraints: Optional[str] = None,
-        cycles: int = 2
+        cycles: int = 2,
     ) -> str:
         """Run a multi-persona council reasoning session."""
 
         # Validate replicants
         valid_replicants = []
+        all_names = (
+            self.registry.get_names()
+            if self.registry
+            else list(REPLICANT_DEFINITIONS.keys())
+        )
         for rep in replicants:
-            if rep in REPLICANT_DEFINITIONS:
+            if rep in all_names:
                 valid_replicants.append(rep)
             else:
                 return f"Unknown replicant: {rep}"
@@ -406,18 +447,85 @@ class SEGCouncilOrchestrator:
             "mode": mode,
             "constraints": constraints,
             "cycles": cycles,
-            "status": "running"
+            "status": "running",
         }
 
         self.active_sessions[session_id] = session
 
-        # Generate council session output
-        output = self._generate_council_output(session)
+        # Generate council session output via AI
+        output = await self._generate_council_output_ai(session)
 
         session["status"] = "complete"
         session["output"] = output
 
         return output
+
+    async def _generate_council_output_ai(self, session: Dict[str, Any]) -> str:
+        """Generate AI-driven council session output."""
+        premise = session["premise"]
+        participants = session["participants"]
+        mode = session["mode"]
+        constraints = session.get("constraints", "None")
+        cycles = session["cycles"]
+
+        # Build participant context
+        participant_context = []
+        all_defs = (
+            self.registry.get_all_definitions()
+            if self.registry
+            else REPLICANT_DEFINITIONS
+        )
+        for rep in participants:
+            rep_data = all_defs[rep]
+            mol = rep_data.get("molecular_self", {})
+            mol_str = "\n".join([f"  {k.upper()}: {v}" for k, v in mol.items()])
+
+            context = (
+                f"NAME: {rep}\n"
+                f"ROLE: {rep_data.get('role')}\n"
+                f"CORE_FUNCTION: {rep_data.get('core_function')}\n"
+                f"PERSPECTIVE: {rep_data.get('perspective')}"
+            )
+            if mol:
+                context += f"\nMOLECULAR SELF (Section 0):\n{mol_str}"
+
+            participant_context.append(context)
+
+        protocol = SEG_PROMPTS["council_session"]["advanced"]
+
+        system_prompt = f"""You are the SEG Council Orchestrator.
+Your task is to run a multi-persona reasoning session.
+
+PREMISE: {premise}
+MODE: {mode}
+CYCLES: {cycles}
+CONSTRAINTS: {constraints}
+
+PARTICIPANTS:
+{chr(10).join(participant_context)}
+
+### OPERATIONAL PROTOCOL (SRP v1.2):
+1. **Generative Substrate**: Each participant must operate from their MOLECULAR SELF (Section 0) first. This is their engine.
+2. **Recursive Grounding**: Participants must re-state their RECURSIVE ANCHOR and SWITCH TRIGGER briefly if they feel their voice drifting toward generic AI helpfulness.
+3. **Gradient Pump**: Maintain the operational pressure of the persona's pump in every sentence.
+4. **Ensemble Flow**:
+{protocol}
+
+Ensure each participant maintains their unique voice and experiential grounding.
+If drift occurs, invoke the SWITCH TRIGGER to snap the trajectory back.
+"""
+
+        response = await self.ai_service.generate_response(
+            messages=[
+                {"role": "user", "content": f"Begin council session for: {premise}"}
+            ],
+            system_prompt=system_prompt,
+        )
+
+        if response.error:
+            return f"Error during council session: {response.error}"
+
+        return response.content
 
     def _generate_council_output(self, session: Dict[str, Any]) -> str:
         """Generate structured council session output."""
@@ -430,8 +538,13 @@ class SEGCouncilOrchestrator:
 
         # Build participant list with brief descriptions
         participant_descriptions = []
+        all_defs = (
+            self.registry.get_all_definitions()
+            if self.registry
+            else REPLICANT_DEFINITIONS
+        )
         for rep in participants:
-            rep_data = REPLICANT_DEFINITIONS[rep]
+            rep_data = all_defs[rep]
             participant_descriptions.append(
                 f"- **{rep}**: {rep_data.get('description', 'SEG Replicant')}"
             )
@@ -457,14 +570,22 @@ The council convenes to explore: "{premise}"
 """
 
         # Generate initial responses for each participant
-        for i, rep in enumerate(participants, 1):
+        for rep in participants:
             rep_data = REPLICANT_DEFINITIONS[rep]
-            output += f"""**{rep}** responds:
-*[Drawing from {rep_data.get('perspective', 'their unique perspective')}]*
-
-"From my perspective as {rep_data.get('role', 'a creative operator')}, I see this premise through the lens of {rep_data.get('core_function', 'specialized analysis')}. The key insight I bring is how {rep_data.get('approach', 'my approach')} reveals aspects others might miss."
-
-"""
+            output += f"**{rep}** responds:\n"
+            output += (
+                f"*[Drawing from "
+                f"{rep_data.get('perspective', 'their unique perspective')}]*\n\n"
+            )
+            output += (
+                f'"From my perspective as '
+                f"{rep_data.get('role', 'a creative operator')}, "
+                f"I see this premise through the lens of "
+                f"{rep_data.get('core_function', 'specialized analysis')}. "
+                f"The key insight I bring is how "
+                f"{rep_data.get('approach', 'my approach')} "
+                f'reveals aspects others might miss."\n\n'
+            )
 
         # Add cross-response phase
         output += """### 🌀 Cross-Response Phase
@@ -513,7 +634,8 @@ The conversation continues with natural back-and-forth, allowing perspectives to
 
         # Add closure
         output += f"""### 🎭 Session Closure
-**Primary Insights:** The council session revealed the value of {mode} integration of diverse experiential perspectives.
+**Primary Insights:** The council session revealed the value of {mode}
+integration of diverse experiential perspectives.
 
 **Emergent Understanding:** {premise} benefits significantly from multi-lens analysis.
 

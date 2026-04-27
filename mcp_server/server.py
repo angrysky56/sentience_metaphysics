@@ -10,23 +10,40 @@ Framework: Simulated Experiential Grounding v1.1
 """
 
 import asyncio
+import builtins
 import json
 import logging
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import mcp.types as types
 from mcp.server import Server
+
+
+# Force all prints to stderr to avoid protocol pollution
+def _stderr_print(*args, **kwargs):
+    kwargs.pop("file", None)
+    builtins.__dict__["print"](*args, file=sys.stderr, **kwargs)
+
+
+builtins.print = _stderr_print
+
 from mcp.server.stdio import stdio_server
 from pydantic import BaseModel, Field, field_validator
+
+original_stdout = sys.stdout
 
 from .ai_service import AIService
 from .council import CouncilManager
 from .seg_core import SEGCouncilOrchestrator, SEGPersonaGenerator
 from .templates import SEG_TEMPLATES
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Restore stdout in case crewai or other libs monkeypatched it
+sys.stdout = original_stdout
+
+# Configure logging to stderr explicitly to avoid protocol pollution
+logging.basicConfig(level=logging.ERROR, stream=sys.stderr)
 logger = logging.getLogger(__name__)
 
 
@@ -277,7 +294,12 @@ async def list_tools() -> List[types.Tool]:
                 "type": "object",
                 "properties": {
                     "name": {"type": "string", "description": "Persona name"},
-                    "age": {"type": "integer", "description": "Age in years", "minimum": 1, "maximum": 120},
+                    "age": {
+                        "type": "integer",
+                        "description": "Age in years",
+                        "minimum": 1,
+                        "maximum": 120,
+                    },
                     "profession": {
                         "type": "string",
                         "description": "Primary profession or role (e.g., 'Bio-ethicist', 'Deep-sea Welder')",

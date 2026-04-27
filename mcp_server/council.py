@@ -5,18 +5,23 @@ This module defines the SEGCouncilFlow for multi-agent deliberation.
 
 import asyncio
 import os
-from typing import List, Dict, Any
+import sys
+from typing import Any, Dict, List
 
+_orig_stdout = sys.stdout
 from crewai import Agent, Flow
-from crewai.flow.flow import start, listen
+from crewai.flow.flow import listen, start
+
+sys.stdout = _orig_stdout
 from pydantic import BaseModel
 
-from .replicants import REPLICANT_DEFINITIONS
 from .ai_service import AIService
+from .replicants import REPLICANT_DEFINITIONS
 
 
 class CouncilState(BaseModel):
     """State management for the Council Flow."""
+
     premise: str = ""
     agent_ids: List[str] = []
     responses: List[dict] = []
@@ -30,6 +35,7 @@ class SEGCouncilFlow(Flow[CouncilState]):
     Simulated Experiential Grounding (SEG) Council Flow.
     Coordinates multiple replicants through grounding, divergence, friction, and synthesis.
     """
+
     def __init__(self):
         super().__init__()
         self.ai_service = AIService()  # Uses default provider/model from env
@@ -50,7 +56,7 @@ class SEGCouncilFlow(Flow[CouncilState]):
             ),
             verbose=True,
             memory=True,
-            allow_delegation=False
+            allow_delegation=False,
         )
 
     @start()
@@ -94,13 +100,16 @@ class SEGCouncilFlow(Flow[CouncilState]):
         self.state.current_step = "synthesis"
         print("Protocol Step: Synthesis")
         # Final summary by the distiller
-        self.state.synthesis = "The council has reached a tentative synthesis based on the premise..."
+        self.state.synthesis = (
+            "The council has reached a tentative synthesis based on the premise..."
+        )
         self.state.is_complete = True
         return "synthesis_complete"
 
 
 class CouncilManager:
     """Manages multiple active Council Flow sessions."""
+
     def __init__(self):
         self.active_flows: Dict[str, SEGCouncilFlow] = {}
 
@@ -128,9 +137,7 @@ class CouncilManager:
             "agent_ids": council_flow.state.agent_ids,
             "responses_count": len(council_flow.state.responses),
             "is_complete": council_flow.state.is_complete,
-            "results": {
-                "synthesis": council_flow.state.synthesis
-            }
+            "results": {"synthesis": council_flow.state.synthesis},
         }
 
 

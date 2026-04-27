@@ -3,14 +3,14 @@
     "seg-narrative": {
       "command": "uv",
       "args": [
+        "--directory",
+        "/home/ty/Repositories/ai_workspace/sentience_metaphysics",
         "run",
-        "python",
         "-m",
         "mcp_server.server"
       ],
-      "cwd": "/home/ty/Repositories/ai_workspace/sentience_metaphysics",
       "env": {
-        "AI_PROVIDER": "gemini"
+        "AI_PROVIDER": "ollama"
       }
     }
   }

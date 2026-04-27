@@ -1,11 +1,10 @@
 import pytest
 import asyncio
-from seg_core import SEGPersonaGenerator, SEGCouncilOrchestrator
-from ai_service import AIService
+from mcp_server.seg_core import SEGPersonaGenerator, SEGCouncilOrchestrator
+from mcp_server.ai_service import AIService, AIResponse
 
 class MockAIService(AIService):
     async def generate_response(self, messages, system_prompt=None, **kwargs):
-        from ai_service import AIResponse
         return AIResponse(content="Mocked response")
 
 @pytest.fixture

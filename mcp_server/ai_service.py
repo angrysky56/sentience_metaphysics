@@ -1,11 +1,19 @@
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Optional
 
 import httpx
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env relative to the package root, NOT relative to the cwd. This makes
+# AIService usable from any working directory — tests, REPL sessions, scripts
+# launched from elsewhere — without requiring callers to chdir into the project
+# first. The project's .env lives one directory up from this file (alongside
+# pyproject.toml). load_dotenv() with override=False so an explicit env var
+# from the launcher (e.g. mcp.json's "env" block) still wins.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(dotenv_path=_PROJECT_ROOT / ".env", override=False)
 
 
 @dataclass

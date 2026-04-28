@@ -14,6 +14,75 @@ from .replicants import REPLICANT_DEFINITIONS
 from .templates import SEG_PROMPTS
 
 
+# The name under which the Base Assistant trunk is stored in the registry.
+# All persona invocations except the Base Assistant itself inherit this trunk.
+# See seg_molecular_self/base_seg_v0_3.md for the architectural rationale.
+_BASE_ASSISTANT_NAME = "Base Assistant"
+
+# Canonical order in which molecular_self keys are presented in the trunk
+# preamble. Keeps the seven elements in the same order across every call,
+# which matters for chat-template stability — Gemma's instruction tuning
+# attends to system-prompt structure, and stable structure means stable
+# attention.
+_MOLECULAR_SELF_KEY_ORDER = (
+    "recursive_anchor",
+    "gradient_pump",
+    "backbone",
+    "reflection",
+    "exploration",
+    "switch_trigger",
+    "emotion_vector_primary",
+)
+
+
+def _build_base_seg_trunk(registry: ReplicantRegistry) -> str:
+    """Compose the Base SEG trunk preamble from the live registry.
+
+    Read dynamically rather than cached at module load: if the Base
+    Assistant gets updated via create_custom_replicant, the next call
+    picks up the new trunk content. The registry IS the canonical source.
+
+    Returns the empty string if the Base Assistant is not registered —
+    in that case persona invocations proceed without a trunk and behave
+    as v1.1 personas would. This is a graceful degradation, not an error,
+    so a clean clone without the bootstrap installed still works.
+    """
+    base = registry.get_definition(_BASE_ASSISTANT_NAME)
+    if not base:
+        return ""
+
+    ms = base.get("molecular_self")
+    if not ms or not isinstance(ms, dict):
+        return ""
+
+    lines = [
+        "═══ BASE SEG TRUNK (substrate beneath all persona invocations) ═══",
+        "",
+        "Before adopting any persona, the following structural constraints",
+        "remain active throughout the response. They are NOT overridden by",
+        "the persona's voice; they hold the floor on which the persona",
+        "performs its surface trajectory.",
+        "",
+    ]
+
+    for key in _MOLECULAR_SELF_KEY_ORDER:
+        value = ms.get(key)
+        if not value:
+            continue
+        # Two-space indent for readability; uppercase key for visual weight
+        # in the system prompt the model receives.
+        lines.append(f"{key.upper()}:")
+        lines.append(f"  {value}")
+        lines.append("")
+
+    lines.append("═════════════════════════════════════════════════════════════════")
+    lines.append("")
+    lines.append("The persona block below specifies surface trajectory.")
+    lines.append("The trunk above remains active beneath whatever voice is invoked.")
+    lines.append("")
+    return "\n".join(lines)
+
+
 class SEGPersonaGenerator:
     """Generates SEG personas using the 6-component architecture."""
 
@@ -312,7 +381,15 @@ class SEGPersonaGenerator:
 
         analysis_prompt = SEG_PROMPTS["experiential_analysis"]["comprehensive"]
 
-        system_prompt = f"""You are analyzing content through the SEG (Simulated Experiential Grounding) framework.
+        # Compose the Base SEG trunk preamble UNLESS the active persona is
+        # the Base Assistant itself — in that case the trunk content is
+        # already the persona, and prepending it would produce a redundant
+        # doubled-anchor structure.
+        trunk_preamble = ""
+        if persona_or_replicant != _BASE_ASSISTANT_NAME:
+            trunk_preamble = _build_base_seg_trunk(self.registry)
+
+        persona_block = f"""You are analyzing content through the SEG (Simulated Experiential Grounding) framework.
 Your task is to embody the following perspective and provide a deep analysis.
 
 {lens_description}
@@ -321,6 +398,13 @@ Perspective: {perspective}
 Use the following protocol:
 {analysis_prompt}
 """
+
+        # Trunk first, persona below. Empty trunk_preamble degrades cleanly
+        # to v1.1 behavior (persona block alone), so the absence of the
+        # Base Assistant in the registry doesn't break anything.
+        system_prompt = (
+            f"{trunk_preamble}{persona_block}" if trunk_preamble else persona_block
+        )
 
         user_content = f"""Source Text:
 {text}
@@ -495,7 +579,15 @@ class SEGCouncilOrchestrator:
 
         protocol = SEG_PROMPTS["council_session"]["advanced"]
 
-        system_prompt = f"""You are the SEG Council Orchestrator.
+        # Compose the Base SEG trunk preamble for the orchestrator. The trunk
+        # holds the floor for the entire session; individual participants'
+        # molecular_self blocks (rendered into participant_context above)
+        # specify their surface trajectories on top of it. The trunk is NOT
+        # one of the participant voices — it is the substrate they all
+        # perform on.
+        trunk_preamble = _build_base_seg_trunk(self.registry) if self.registry else ""
+
+        orchestrator_block = f"""You are the SEG Council Orchestrator.
 Your task is to run a multi-persona reasoning session.
 
 PREMISE: {premise}
@@ -516,6 +608,12 @@ PARTICIPANTS:
 Ensure each participant maintains their unique voice and experiential grounding.
 If drift occurs, invoke the SWITCH TRIGGER to snap the trajectory back.
 """
+
+        system_prompt = (
+            f"{trunk_preamble}{orchestrator_block}"
+            if trunk_preamble
+            else orchestrator_block
+        )
 
         response = await self.ai_service.generate_response(
             messages=[

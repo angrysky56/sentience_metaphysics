@@ -43,7 +43,7 @@
   "Test Persona": {
     "name": "Test Persona",
     "anchor_identity": {
-      "age": 62,
+      "age": 42,
       "profession": "Scientist",
       "location": "University research campus",
       "domain_expertise": "Scientist"
@@ -66,7 +66,7 @@
       "decision_framework": "Balance rational analysis with intuitive wisdom"
     },
     "linguistic_tics": {
-      "speech_pattern": "Thoughtful and reflective, drawing on accumulated experience",
+      "speech_pattern": "Measured and precise, balancing formality with accessibility",
       "metaphor_preference": "Natural processes and systems",
       "cadence": "Natural conversational rhythm with thoughtful pauses",
       "signature_phrases": [

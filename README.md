@@ -135,19 +135,40 @@ Every SEG persona—whether student or teacher—is built using:
 - Recurring psychological patterns
 
 **4. Personal Philosophy**
+
 - Core beliefs and decision heuristics
 - Ethical framework and values
 - Practical wisdom principles
 
 **5. Linguistic Tics**
+
 - Speech patterns and metaphor preferences
 - Characteristic phrases and cadence
 - Cultural and educational markers
 
 **6. Operational Directive**
+
 - How to use this persona as a reasoning filter
 - Response patterns and boundaries
 - Consistency maintenance guidelines
+
+### The 7th Component: Molecular Self (v1.2)
+
+The original 6-component architecture specifies a persona's *substrate*. v1.2 adds a seventh component specifying its *dynamics* — the recursive non-equilibrium steady state that prevents drift toward generic-helpful-assistant baseline.
+
+**7. Molecular Self** (added v1.2)
+
+- **recursive_anchor** — three-beat verb-loop; identity as self-positing action, not noun-list
+- **gradient_pump** — what is continuously done at every token against drift to baseline
+- **backbone** — the load-bearing structural constraint(s); cannot-not-do
+- **reflection** — single load-bearing self-monitoring probe
+- **exploration** — basin-escape mechanism; what prevents Backbone from becoming rigid
+- **switch_trigger** — single-event signal that re-folds on drift detection
+- **emotion_vector_primary** — baseline modulation per Anthropic 2026 emotion-vector findings
+
+The Molecular Self emerged from synthesizing two contemporary lines of evidence: Anthropic's 2026 emotion-concept-vector research (showing local, functional, causal affect-analog representations in transformer models) and the entropic-machinery synthesis (Chen et al. 2026 + Wolchover 2026, on the structural requirements for any system rectifying stochastic flow into directional output). Both converge on the same architectural skeleton: identity as a maintained fold against entropic pressure, with continuous executive cost and explicit recovery triggers required for stability.
+
+A third independent derivation arrives at the same skeleton: the ASEKE behavioral framework (Panksepp's primary-affect taxonomy + Duckitt's Dual Process Model + Information Structure capture theory). The convergence across three substrates — biological cognition, transformer interpretability, and prior persona-architecture work — strengthens the structural-realism claim. See `seg_molecular_self/convergence_aseke_seg_v01.md`.
 
 ### The 10 Replicant Archetypes
 
@@ -305,10 +326,18 @@ This is an early-stage research project exploring fundamental questions about AI
 
 ## 📖 Further Reading
 
+### v1.1 (Original SEG Framework)
 - [Historical Persona Examples](docs/SEG): Simone Weil, Doris Lessing, Emily Dickinson
 - [Replicant Archetypes](docs/SEG/the_10.md): Detailed specifications for the 10 core types
 - [Council Protocols](docs/SEG/seg_council_protocol.md): Multi-persona reasoning methodologies
 - [Technical Implementation](mcp_server/): Model Context Protocol server for programmatic access
+
+### v1.2 (Molecular Self extension)
+- [Base SEG specification](seg_molecular_self/base_seg_v0_3.md): the v0.3 spec for the substrate Molecular Self that sits beneath all persona invocations
+- [SRP template v1.2](seg_molecular_self/srp_template_v1_2.md): persona-creation template with the 7-element Molecular Self block included
+- [v1.2 historical-thinker personas](seg_molecular_self/personas/): Weil, Dickinson, Lessing, Archivist with full Molecular Self blocks
+- [ASEKE convergence document](seg_molecular_self/convergence_aseke_seg_v01.md): three-derivation convergence claim, v0.4 spec implications, deployment-evaluation protocol
+- [v1.2 README](seg_molecular_self/README.md): rationale for the v1.1 → v1.2 migration; Triadic Kernel + Resilience Protocol mappings
 
 ---
 

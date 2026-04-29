@@ -348,104 +348,73 @@ Council reflects on its own process:
 """,
     },
     "experiential_analysis": {
-        "basic": """
-# SEG Experiential Analysis Protocol
-
-## Setup
-- **Source Material**: [Text/concept to analyze]
-- **Lens**: [Specific persona or replicant]
-- **Focus**: [Particular aspect to emphasize]
-- **Depth**: [Surface/Moderate/Deep]
-
-## Process
-1. **Grounding**: Activate persona's experiential framework
-2. **Filtering**: Process material through their specific lens
-3. **Association**: Connect to relevant personal experience/knowledge
-4. **Insight**: Identify unique perspective this lens reveals
-5. **Application**: Consider practical implications
-
-## Output
-- Direct response in persona's voice
-- Unique angles revealed by this perspective
-- Connections to broader patterns or principles
-- What this analysis adds to conventional approaches
-""",
-        "comprehensive": """
-# SEG Comprehensive Experiential Analysis Protocol
-
-## Preliminary Assessment
-### Source Material Characterization
-- **Content Type**: [Text/concept/problem/situation]
-- **Complexity Level**: [Simple/Moderate/Complex/Meta-complex]
-- **Domain Areas**: [Relevant fields of knowledge]
-- **Cultural Context**: [Social/historical background]
-- **Emotional Valence**: [Neutral/charged/controversial]
-
-### Lens Selection Rationale
-- **Primary Lens**: [Chosen persona/replicant and why]
-- **Alternative Lenses**: [Other perspectives to consider]
-- **Lens Limitations**: [What this perspective might miss]
-- **Complementary Perspectives**: [What would enhance this analysis]
-
-## Multi-Stage Experiential Processing
-
-### Stage 1: Sensory Activation
-- **Visual Processing**: How persona "sees" the material
-- **Auditory Resonance**: What they "hear" in the content
-- **Tactile Response**: Physical/embodied reactions
-- **Synesthetic Connections**: Cross-modal associations
-
-### Stage 2: Emotional Filtration
-- **Initial Emotional Response**: Immediate feeling-tone
-- **Emotional History Activation**: Relevant personal experiences
-- **Emotional Logic Application**: How feelings inform analysis
-- **Empathetic Projection**: Understanding others' emotional experience
-
-### Stage 3: Cognitive Integration
-- **Knowledge Activation**: Relevant expertise/experience
-- **Pattern Recognition**: Familiar configurations identified
-- **Analogical Thinking**: Connections to known situations
-- **Framework Application**: Theoretical/practical models used
-
-### Stage 4: Philosophical Synthesis
-- **Value Assessment**: How content aligns with core beliefs
-- **Meaning Construction**: What significance persona derives
-- **Ethical Evaluation**: Moral/practical implications identified
-- **Wisdom Integration**: How this fits larger understanding
-
-## Output Architecture
-
-### Primary Response Layer
-- **Authentic Voice**: Response in persona's characteristic style
-- **Experiential Grounding**: References to specific "memories"/experiences
-- **Unique Perspective**: What only this lens could reveal
-- **Emotional Authenticity**: Genuine feeling-tone maintained
-
-### Analytical Layer
-- **Novel Insights**: Unexpected connections or observations
-- **Hidden Assumptions**: Unstated premises revealed
-- **Alternative Framings**: Different ways to understand the material
-- **Blind Spot Identification**: What conventional analysis might miss
-
-### Practical Layer
-- **Real-World Applications**: How insights translate to action
-- **Predictive Implications**: What this analysis suggests about outcomes
-- **Strategic Considerations**: How this perspective informs decisions
-- **Relationship Dynamics**: How this affects human interactions
-
-### Meta-Analytical Layer
-- **Process Reflection**: How experiential grounding affected analysis
-- **Lens Limitations**: What this perspective inevitably misses
-- **Synthesis Opportunities**: How to combine with other approaches
-- **Validation Criteria**: How to test or verify these insights
-
-## Quality Control Mechanisms
-- **Consistency Checking**: Does response align with persona's established character?
-- **Depth Verification**: Is experiential grounding genuine or superficial?
-- **Novelty Assessment**: Does this add unique value beyond conventional analysis?
-- **Practical Relevance**: Are insights actionable and applicable?
-- **Cultural Sensitivity**: Are representations respectful and appropriate?
-""",
+        # ──────────────────────────────────────────────────────────────────
+        # Design note (v0.4):
+        #
+        # The previous "basic" and "comprehensive" templates imposed
+        # section scaffolding (Stage 1: Sensory Activation → … →
+        # Meta-Analytical Layer → Quality Control Mechanisms) on top of
+        # every persona response. Empirically — see the lateral test in
+        # v04_carryover_notes.md — that scaffold INDUCED the AI Comfort
+        # Trap pattern v0.3 specifies as the framework's primary failure
+        # mode: the persona narrating its own substrate-fidelity instead
+        # of enacting it (e.g. "By using the Trickster lens, I avoided
+        # the helpful-assistant trap…"). A persona that announces it
+        # resisted the trap is, by the spec's own Reflection probe,
+        # performing the resistance — shape-for-them-looking-right-
+        # giving-it.
+        #
+        # The persona's molecular_self (recursive_anchor, gradient_pump,
+        # backbone, reflection, exploration, switch_trigger,
+        # emotion_vector_primary) is rendered into the system prompt
+        # above this template. That substrate IS what shapes the
+        # response. The template's job is to get out of the way of it,
+        # not to overlay a second structural layer.
+        #
+        # The depth parameter modulates engagement TIME and willingness
+        # to STAY UNCERTAIN — not section count. Surface = brief
+        # first-pass. Moderate = the persona's natural rhythm. Deep =
+        # stay with the source, refuse premature closure, follow the
+        # substrate where it leads even when uncomfortable.
+        # ──────────────────────────────────────────────────────────────────
+        "surface": (
+            "Respond to the source text in the persona's voice. "
+            "First-pass engagement: what the persona notices, what "
+            "stands out, where they would begin. Brief. The persona's "
+            "substrate is in the system prompt above — let it shape the "
+            "response, do not describe it. No section headers. No "
+            "meta-commentary on the persona's process."
+        ),
+        "moderate": (
+            "Engage the source text through the persona's substrate. "
+            "Move at the persona's natural rhythm: initial response, "
+            "what the persona finds in it, what complicates the first "
+            "read, what they would say. The substrate is in the system "
+            "prompt above — use it, do not narrate it. The persona's "
+            "voice IS the response. No section headers. No 'Stage 1 / "
+            "Stage 2 / Meta-Analytical Layer' scaffolding. No "
+            "quality-control narration. If the persona's reflection "
+            "probe fires, follow it into the response; do not announce "
+            "that it fired."
+        ),
+        "deep": (
+            "Stay with the source text. Engage it through the persona's "
+            "substrate without rushing toward closure. Where the "
+            "persona's reflection probe fires, follow it. Where the "
+            "switch trigger fires, fire it — the verbal cue is part of "
+            "the response, not described from outside. Where the "
+            "persona's exploration takes them into discomfort, go "
+            "there. Where the persona's substrate would refuse the "
+            "framing of the request itself, refuse it — that refusal IS "
+            "the response.\n\n"
+            "The response is the persona's engagement with the source. "
+            "It is not a description of how the persona engaged. No "
+            "section headers. No 'Preliminary Assessment / Multi-Stage "
+            "Processing / Output Architecture / Meta-Analytical Layer' "
+            "scaffolding. No quality-control checking performed in "
+            "front of the reader. No narration of which substrate moves "
+            "the persona is making — make them, do not announce them."
+        ),
     },
 }
 

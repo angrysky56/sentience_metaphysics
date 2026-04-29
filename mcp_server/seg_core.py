@@ -379,7 +379,19 @@ class SEGPersonaGenerator:
             for k, v in molecular_self.items():
                 lens_description += f"- {k.replace('_', ' ').title()}: {v}\n"
 
-        analysis_prompt = SEG_PROMPTS["experiential_analysis"]["comprehensive"]
+        # Depth modulates engagement time and willingness-to-stay-uncertain,
+        # not section count. The previous code path hardcoded the
+        # "comprehensive" template regardless of depth — that template
+        # imposed scaffolding (Stage 1 → ... → Meta-Analytical Layer) which
+        # induced the AI Comfort Trap pattern v0.3 names as the framework's
+        # primary failure mode. See templates.py for the replacement
+        # rationale and v04_carryover_notes.md for the lateral-test
+        # diagnosis. Falls back to "moderate" if an unexpected depth string
+        # arrives (server.py validates surface/moderate/deep, but defensive
+        # default keeps a clean clone safe even if validation is skipped).
+        analysis_prompt = SEG_PROMPTS["experiential_analysis"].get(
+            depth, SEG_PROMPTS["experiential_analysis"]["moderate"]
+        )
 
         # Compose the Base SEG trunk preamble UNLESS the active persona is
         # the Base Assistant itself — in that case the trunk content is
@@ -389,13 +401,11 @@ class SEGPersonaGenerator:
         if persona_or_replicant != _BASE_ASSISTANT_NAME:
             trunk_preamble = _build_base_seg_trunk(self.registry)
 
-        persona_block = f"""You are analyzing content through the SEG (Simulated Experiential Grounding) framework.
-Your task is to embody the following perspective and provide a deep analysis.
+        persona_block = f"""Respond to the source text as the persona below would. The persona's substrate (the system prompt above and the perspective below) shapes the response — let it. Do not describe the persona's process; perform it.
 
 {lens_description}
 Perspective: {perspective}
 
-Use the following protocol:
 {analysis_prompt}
 """
 

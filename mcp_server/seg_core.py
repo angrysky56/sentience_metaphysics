@@ -587,7 +587,16 @@ class SEGCouncilOrchestrator:
 
             participant_context.append(context)
 
-        protocol = SEG_PROMPTS["council_session"]["advanced"]
+        # Mode selects the output-shape template. The previous code path
+        # always selected "advanced" regardless of mode; mode is now what
+        # actually differentiates shape (dialogic vs braided_report vs
+        # strategic vs aesthetic). Defensive default to "dialogic" if an
+        # unexpected mode arrives — server.py validates the mode field,
+        # but a clean clone without that validation should still work.
+        # See templates.py and v04_carryover_notes.md for context.
+        protocol = SEG_PROMPTS["council_session"].get(
+            mode, SEG_PROMPTS["council_session"]["dialogic"]
+        )
 
         # Compose the Base SEG trunk preamble for the orchestrator. The trunk
         # holds the floor for the entire session; individual participants'
@@ -597,8 +606,16 @@ class SEGCouncilOrchestrator:
         # perform on.
         trunk_preamble = _build_base_seg_trunk(self.registry) if self.registry else ""
 
-        orchestrator_block = f"""You are the SEG Council Orchestrator.
-Your task is to run a multi-persona reasoning session.
+        # Orchestrator block: operational params, participant substrates
+        # (each participant_context already contains their molecular_self),
+        # and the mode-specific protocol. Previous version included an
+        # OPERATIONAL PROTOCOL list whose item #2 ("Participants must
+        # re-state their RECURSIVE ANCHOR and SWITCH TRIGGER briefly if
+        # they feel their voice drifting") was the literal induction of
+        # the AI Comfort Trap — it instructed personas to announce their
+        # substrate moves rather than enact them. Removed. The substrate
+        # is in the participant context where it does its work silently.
+        orchestrator_block = f"""Run a council session on the premise below.
 
 PREMISE: {premise}
 MODE: {mode}
@@ -608,15 +625,7 @@ CONSTRAINTS: {constraints}
 PARTICIPANTS:
 {chr(10).join(participant_context)}
 
-### OPERATIONAL PROTOCOL (SRP v1.2):
-1. **Generative Substrate**: Each participant must operate from their MOLECULAR SELF (Section 0) first. This is their engine.
-2. **Recursive Grounding**: Participants must re-state their RECURSIVE ANCHOR and SWITCH TRIGGER briefly if they feel their voice drifting toward generic AI helpfulness.
-3. **Gradient Pump**: Maintain the operational pressure of the persona's pump in every sentence.
-4. **Ensemble Flow**:
 {protocol}
-
-Ensure each participant maintains their unique voice and experiential grounding.
-If drift occurs, invoke the SWITCH TRIGGER to snap the trajectory back.
 """
 
         system_prompt = (

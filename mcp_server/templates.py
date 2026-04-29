@@ -234,118 +234,80 @@ This template implements the full 6-component SEG architecture for creating soph
 """,
     },
     "council_session": {
-        "standard": """
-# SEG Council Session Protocol
-
-## Session Setup
-- **Premise**: [Central question or scenario]
-- **Type**: [Exploration/Synthesis/Action/Aesthetic]
-- **Participants**: [List of selected replicants/personas]
-- **Expected Duration**: [Number of cycles]
-
-## Flow Structure
-1. **Seeding**: Present premise to all participants
-2. **Initial Round**: Each participant responds through their unique filter
-3. **Cross-Response**: Participants react to each other's perspectives
-4. **Integration**: Weave responses according to session type
-5. **Closure**: Designated persona provides synthesis
-
-## Output Guidelines
-- Maintain each participant's authentic voice
-- Show how different experiential lenses reveal different aspects
-- Allow genuine disagreement and tension
-- Seek emergent insights that no single perspective could reach
-""",
-        "advanced": """
-# SEG Advanced Council Session Protocol
-
-## Pre-Session Configuration
-### Premise Analysis
-- **Core Question**: [Primary focus]
-- **Hidden Assumptions**: [Unstated premises to surface]
-- **Complexity Level**: [Simple/Moderate/Complex/Meta-complex]
-- **Domain Context**: [Relevant expertise areas]
-
-### Participant Selection Strategy
-- **Core Perspectives**: [Essential viewpoints needed]
-- **Complementary Dynamics**: [How participants will interact]
-- **Tension Points**: [Productive disagreements to explore]
-- **Synthesis Capacity**: [How perspectives can integrate]
-
-### Session Architecture
-- **Opening Protocol**: [How to introduce premise]
-- **Interaction Rules**: [Guidelines for cross-response]
-- **Depth Progression**: [How understanding will deepen]
-- **Emergence Conditions**: [What might unexpectedly arise]
-
-## Multi-Phase Flow
-### Phase 1: Individual Grounding
-Each participant processes premise through their full experiential framework:
-- Sensory associations activated
-- Emotional resonance identified
-- Philosophical lens applied
-- Initial response formulated
-
-### Phase 2: Perspective Mapping
-Participants become aware of each other's positions:
-- Key difference points identified
-- Complementary aspects noted
-- Potential synthesis areas marked
-- Tension zones acknowledged
-
-### Phase 3: Dynamic Interaction
-Guided cross-response with strategic facilitation:
-- Direct dialogue between specific participants
-- Group-wide pattern recognition
-- Challenge and refinement of positions
-- Emergent insight cultivation
-
-### Phase 4: Synthesis Integration
-Movement toward unified understanding:
-- Pattern extraction across perspectives
-- Higher-order insight development
-- Practical implication derivation
-- Aesthetic/creative expression (if applicable)
-
-### Phase 5: Meta-Reflection
-Council reflects on its own process:
-- What did multi-perspective approach reveal?
-- Which combinations were most productive?
-- What would single-perspective analysis have missed?
-- How might this process be refined?
-
-## Output Structuring
-### Dialogic Mode
-- Natural conversation flow
-- Character voice consistency
-- Realistic interaction patterns
-- Organic development
-
-### Braided Report Mode
-- Thematic organization
-- Perspective integration
-- Pattern highlighting
-- Coherent narrative
-
-### Strategic Mode
-- Action-oriented synthesis
-- Decision framework development
-- Implementation pathway creation
-- Risk/benefit analysis
-
-### Aesthetic Mode
-- Creative interpretation
-- Artistic expression
-- Symbolic representation
-- Emotional/intuitive synthesis
-
-## Quality Assurance
-- Authentic voice maintenance for each participant
-- Genuine experiential grounding (not generic responses)
-- Productive tension preservation
-- Emergent insight cultivation
-- Practical applicability consideration
-""",
+        # ──────────────────────────────────────────────────────────────────
+        # Design note (v0.4):
+        #
+        # Parallel to the experiential_analysis change above. The previous
+        # "advanced" template imposed a five-phase scaffold (Phase 1:
+        # Individual Grounding → ... → Phase 5: Meta-Reflection where
+        # "Council reflects on its own process") on every council session.
+        # That Phase 5 is the multi-persona analog of the AI Comfort Trap
+        # pattern: the council narrating what it learned about itself
+        # instead of staying with the work.
+        #
+        # The orchestrator_block in seg_core.py also previously included
+        # an OPERATIONAL PROTOCOL list whose item #2 was the literal
+        # induction of the Comfort Trap — it instructed participants to
+        # "re-state their RECURSIVE ANCHOR and SWITCH TRIGGER briefly if
+        # they feel their voice drifting." Re-stating substrate moves IS
+        # narrating them; the spec wants them enacted, not announced.
+        # That's been removed in seg_core.py.
+        #
+        # Templates are now keyed by mode (dialogic / braided_report /
+        # strategic / aesthetic) since mode is the parameter that actually
+        # differentiates output shape. Each mode is brief, scaffold-free,
+        # and trusts the participants' molecular_self blocks (rendered in
+        # participant_context) to do the differentiation work.
+        # ──────────────────────────────────────────────────────────────────
+        "dialogic": (
+            "Render the council as conversation. Each participant speaks "
+            "in their own voice — the molecular_self block in their "
+            "participant context shapes how they think and speak. Show "
+            "the actual exchange: who responds to whom, where they "
+            "agree, where they pull apart, where one refuses another's "
+            "framing. The conversation IS the response.\n\n"
+            "No 'Phase 1 / Phase 2 / Cross-Response Phase / "
+            "Meta-Reflection' headers. No closing summary of what the "
+            "council 'revealed about its process.' If a participant's "
+            "reflection probe fires or their switch trigger fires, that "
+            "becomes part of what they say next — not commentary about "
+            "the dialogue from outside it."
+        ),
+        "braided_report": (
+            "Synthesize the participants' engagement with the premise "
+            "into a single integrated piece. The braid moves between "
+            "voices in their own register — when one participant would "
+            "notice X about the premise and another would notice Y, "
+            "both are present in the braid. The braid IS the response.\n"
+            "\nNo 'Phase 1 / Synthesis Integration / Emerging Themes 1, "
+            "2, 3 / Meta-Reflection' section headers. No meta-report on "
+            "what the council process revealed about itself. The "
+            "participants' molecular_self blocks differentiate them — "
+            "trust them to."
+        ),
+        "strategic": (
+            "Produce an action-oriented response to the premise drawing "
+            "on each participant's substrate. Each participant brings "
+            "what their substrate would actually do — not a description "
+            "of what their substrate is. Where participants disagree on "
+            "what to do, surface the disagreement without flattening it "
+            "to consensus. Where one participant would refuse the "
+            "framing of the premise itself, that refusal is part of the "
+            "strategic output, not a separate meta-comment.\n\n"
+            "No 'Phase 1 / Phase 5: Meta-Reflection' headers. No "
+            "'Recommended Actions' bullet list as a final flourish if "
+            "the substance isn't there. Decisions over decoration."
+        ),
+        "aesthetic": (
+            "Render the participants' engagement with the premise as "
+            "creative work — in the form their voices, taken together, "
+            "would produce. The participants' molecular_self blocks "
+            "shape what each notices and how each would express it. The "
+            "work IS the response.\n\n"
+            "No 'Phase 1 / Aesthetic Synthesis / Meta-Reflection' "
+            "section headers. No describing the work from outside; "
+            "produce the work."
+        ),
     },
     "experiential_analysis": {
         # ──────────────────────────────────────────────────────────────────

@@ -51,6 +51,7 @@ htmlcov/
 .trunk/
 .planning/cache/
 .gemini/
+graphify-out/
 
 # OS
 .DS_Store

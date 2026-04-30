@@ -9,6 +9,8 @@ The project uses **Vitest** for unit and integration testing.
 
 ## Running Tests
 
+### Frontend (TypeScript/Vitest)
+
 - **Run all tests:**
     ```bash
     npm test
@@ -17,9 +19,18 @@ The project uses **Vitest** for unit and integration testing.
     ```bash
     npx vitest
     ```
-- **Coverage report:**
+
+### Backend (Python/pytest)
+
+Ensure you have `pytest` installed:
+
+- **Run all tests:**
     ```bash
-    npx vitest run --coverage
+    uv run pytest mcp_server/tests
+    ```
+- **Run with output:**
+    ```bash
+    uv run pytest -s mcp_server/tests
     ```
 
 ## Testing Strategy

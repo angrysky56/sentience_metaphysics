@@ -376,13 +376,45 @@ npm run dev
 
 The application will be available at `http://localhost:3000`.
 
+## Backend Services
+
+The SEG framework uses a Python backend for advanced reasoning and persona grounding.
+
+### Council Bridge (Required for UI)
+
+To use the **Council** tab in the React UI, you must run the bridge server:
+
+```bash
+uv run -m mcp_server.bridge
+```
+
+The bridge runs on `http://localhost:8000` and facilitates communication between the frontend and the Python-based reasoning engine.
+
+### MCP Server (Programmatic Access)
+
+The project also includes a Model Context Protocol (MCP) server for integration with other AI agents (e.g., Claude Desktop):
+
+```bash
+uv run -m mcp_server.server
+```
+
+You can also use the `mcp.json` configuration for easy integration.
+
 ## Usage
 
-1.  **Select/Generate Persona:** Use the "Persona" tab to select an existing archetype or generate a new one based on a context.
-2.  **Interact:** Go to the "Conversation" tab to chat with your narrative organism.
-3.  **Manage Memories:** View and reinforce specific memories in the "Memories" tab.
-4.  **Council Reasoning:** Use the "Council" tab to facilitate a multi-persona reasoning session.
-5.  **Configure AI:** Set your API keys or local base URLs (for Ollama/LM Studio) in the "Settings" tab.
+### React UI (Primary Interface)
+
+The React-based dashboard is the most comprehensive way to interact with the SEG framework:
+
+1.  **Select/Generate Persona:** Use the **Persona** tab to select an existing archetype or generate a new one based on a context.
+2.  **Interact:** Go to the **Conversation** tab to chat with your narrative organism. Witness how its "Molecular Self" and memory stream influence its responses.
+3.  **Manage Memories:** View, reinforce, or prune specific experiential units in the **Memories** tab.
+4.  **Council Reasoning:** Use the **Council** tab to facilitate a dialectic session between multiple personas exploring a single premise.
+5.  **Configure AI:** Set your API keys or local base URLs (for Ollama/LM Studio) in the **Settings** tab.
+
+### Programmatic Access
+
+Use the MCP server to integrate SEG personas into other workflows or automated systems.
 
 ## License
 

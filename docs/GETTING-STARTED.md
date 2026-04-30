@@ -26,7 +26,13 @@ Welcome to the SEG Narrative Organisms project. This guide will help you go from
     npm install
     ```
 
-3.  **Start the Development Server**
+3.  **Start the Backend Bridge**
+    ```bash
+    uv run -m mcp_server.bridge
+    ```
+    *(In a separate terminal)*
+
+4.  **Start the Development Server**
     ```bash
     npm run dev
     ```

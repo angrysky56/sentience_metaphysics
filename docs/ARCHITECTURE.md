@@ -7,27 +7,33 @@ This document outlines the architectural principles and system design of the Sen
 
 The SEG (Simulated Experiential Grounding) framework is designed to create "Living Narrative Organisms" (Replicants) that possess dynamic memory, transient emotional states, and persona-driven context enrichment.
 
-The system is a React-based Single Page Application (SPA) that communicates with various AI providers to simulate consciousness and narrative depth.
+The system is a hybrid architecture consisting of a React-based Single Page Application (SPA) and a Python-based backend service. The frontend handles the primary interactive dashboard, while the Python backend provides deep persona grounding, multi-persona reasoning (Council), and Model Context Protocol (MCP) support.
 
 ## Component Diagram
 
 ```mermaid
 graph TD
-    User[User Interface] --> SegV3[SegV3 Component]
-    SegV3 --> UI[Radix UI Primitives]
-    SegV3 --> Council[CouncilPanel]
+    User[User Interface] --> SegV3[SegV3 Dashboard]
     
-    SegV3 --> Gen[PersonaGenerator]
-    SegV3 --> History[HistoryService]
-    SegV3 --> AI[AIService]
+    subgraph Frontend [React SPA]
+        SegV3 --> UI[Radix UI / Framer Motion]
+        SegV3 --> Gen[PersonaGenerator]
+        SegV3 --> History[HistoryService]
+        SegV3 --> AI_FE[AIService (FE)]
+    end
     
-    Council --> CouncilService[CouncilService]
-    CouncilService --> AI
+    subgraph Backend [Python / FastAPI]
+        Bridge[Council Bridge] --> CouncilMgr[CouncilManager]
+        CouncilMgr --> CrewAI[CrewAI / Agents]
+        MCP[MCP Server] --> Registry[ReplicantRegistry]
+        Registry --> Data[(Local JSON Data)]
+    end
     
-    AI --> Ollama[Ollama / Local]
-    AI --> OpenAI[OpenAI API]
-    AI --> Gemini[Gemini API]
-    AI --> LMStudio[LM Studio / Local]
+    SegV3 --> Bridge
+    Bridge --> Registry
+    
+    AI_FE --> Providers[AI Providers (OpenAI/Gemini/Ollama)]
+    CrewAI --> Providers
     
     History --> LocalStorage[(Browser LocalStorage)]
 ```

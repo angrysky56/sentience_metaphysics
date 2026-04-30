@@ -52,8 +52,8 @@ async def get_replicants():
     return [
         {
             "id": r_id,
-            "name": r_data.get("name", r_id),
-            "archetype": r_data.get("archetype", "Unknown"),
+            "name": r_id,
+            "archetype": r_data.get("subtitle", "Replicant"),
             "description": r_data.get("emotional_core", "No description available"),
         }
         for r_id, r_data in REPLICANT_DEFINITIONS.items()
@@ -90,4 +90,4 @@ async def health():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -346,3 +346,44 @@ This is an early-stage research project exploring fundamental questions about AI
 This project asks: What if we approached AI development not as engineering optimization, but as careful character cultivation? What kinds of artificial beings might emerge from environments of care, wisdom, and authentic relationship?
 
 The SEG Framework provides tools to explore these questions practically, philosophically, and ethically.
+
+## Installation
+
+To set up the project locally, follow these steps:
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/angrysky56/sentience_metaphysics.git
+    cd sentience_metaphysics
+    ```
+
+2.  **Install dependencies:**
+    The project uses `npm` for package management.
+    ```bash
+    npm install
+    ```
+
+3.  **Set up Environment (Optional):**
+    The application primarily uses a UI-based configuration for AI providers (Ollama, LM Studio, Gemini, OpenAI). You can configure these within the "Settings" tab in the application.
+
+## Quick Start
+
+To run the application in development mode:
+
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:3000`.
+
+## Usage
+
+1.  **Select/Generate Persona:** Use the "Persona" tab to select an existing archetype or generate a new one based on a context.
+2.  **Interact:** Go to the "Conversation" tab to chat with your narrative organism.
+3.  **Manage Memories:** View and reinforce specific memories in the "Memories" tab.
+4.  **Council Reasoning:** Use the "Council" tab to facilitate a multi-persona reasoning session.
+5.  **Configure AI:** Set your API keys or local base URLs (for Ollama/LM Studio) in the "Settings" tab.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details (or contact the maintainer).

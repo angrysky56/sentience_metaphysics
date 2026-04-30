@@ -366,7 +366,22 @@ To set up the project locally, follow these steps:
 3.  **Set up Environment (Optional):**
     The application primarily uses a UI-based configuration for AI providers (Ollama, LM Studio, Gemini, OpenAI). You can configure these within the "Settings" tab in the application.
 
-## Quick Start
+## 🚀 Quick Start
+
+The easiest way to run the entire SEG framework (Frontend + Backend) is using the provided startup script:
+
+```bash
+./start.sh
+```
+
+This will automatically:
+1.  Check for dependencies (`uv`, `node`, `npm`).
+2.  Launch the **Python Backend Bridge** on port 8000.
+3.  Launch the **React Frontend** on port 3000.
+4.  Handle cleanup of both processes when you exit (CTRL+C).
+
+### Manual Setup
+If you prefer to run services separately:
 
 To run the application in development mode:
 
